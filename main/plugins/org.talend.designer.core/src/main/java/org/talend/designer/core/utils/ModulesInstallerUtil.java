@@ -38,7 +38,7 @@ public class ModulesInstallerUtil {
 
     public static void forceInstallModules(Shell shell, IComponent component, List<ModuleNeeded> modules) {
         String text = Messages.getString("ModulesInstaller_text1", component.getName());//$NON-NLS-1$
-        String title = Messages.getString("ModulesInstaller_title1") + component.getName(); //$NON-NLS-1$
+        String title = Messages.getString("ModulesInstaller_title1") + " " + component.getName(); //$NON-NLS-1$
         String name = component.getName();
         if (name == null) {
             return;

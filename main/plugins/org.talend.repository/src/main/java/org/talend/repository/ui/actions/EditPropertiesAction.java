@@ -419,8 +419,7 @@ public class EditPropertiesAction extends AContextualAction {
                 IRepositoryNode node = (IRepositoryNode) o;
                 switch (node.getType()) {
                 case REPOSITORY_ELEMENT:
-                    if (node.getObjectType() == ERepositoryObjectType.BUSINESS_PROCESS
-                            || node.getObjectType() == ERepositoryObjectType.PROCESS) {
+                    if (node.getObjectType() == ERepositoryObjectType.PROCESS) {
                         canWork = true;
                     } else if (node.getObjectType() == ERepositoryObjectType.ROUTINES) {
                         Item item = node.getObject().getProperty().getItem();

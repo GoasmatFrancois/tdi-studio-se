@@ -43,7 +43,7 @@ import org.talend.core.ui.images.CoreImageProvider;
 @Deprecated
 public class TreeBuilder {
 
-    static final ERepositoryObjectType ALL_TYPES[] = { ERepositoryObjectType.BUSINESS_PROCESS, ERepositoryObjectType.PROCESS,
+    static final ERepositoryObjectType ALL_TYPES[] = { ERepositoryObjectType.PROCESS,
             ERepositoryObjectType.JOBLET, ERepositoryObjectType.CONTEXT, ERepositoryObjectType.ROUTINES,
             ERepositoryObjectType.SQLPATTERNS, ERepositoryObjectType.METADATA_CONNECTIONS,
             ERepositoryObjectType.METADATA_FILE_DELIMITED, ERepositoryObjectType.METADATA_FILE_POSITIONAL,

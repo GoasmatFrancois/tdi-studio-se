@@ -135,8 +135,7 @@ public class DetecteViewImpactAction extends AContextualAction {
                             || objectType == ERepositoryObjectType.METADATA_MDMCONNECTION
                             || objectType == ERepositoryObjectType.CONTEXT || objectType == ERepositoryObjectType.JOBLET) {
                         canWork = true;
-                    } else if (objectType == ERepositoryObjectType.BUSINESS_PROCESS
-                            || objectType == ERepositoryObjectType.PROCESS || objectType == ERepositoryObjectType.ROUTINES
+                    } else if (objectType == ERepositoryObjectType.PROCESS || objectType == ERepositoryObjectType.ROUTINES
                             || objectType == ERepositoryObjectType.ROUTINESJAR || objectType == ERepositoryObjectType.BEANSJAR
                             || objectType == ERepositoryObjectType.JOB_SCRIPT
                             || objectType == ERepositoryObjectType.SQLPATTERNS || objectType == ERepositoryObjectType.JOB_DOC

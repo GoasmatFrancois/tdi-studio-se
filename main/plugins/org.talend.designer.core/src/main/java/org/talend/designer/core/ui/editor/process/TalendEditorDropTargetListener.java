@@ -2299,9 +2299,6 @@ public class TalendEditorDropTargetListener extends TemplateTransferDropTargetLi
     public void translateAbsolateToRelative(IFigure owner, Translatable t) {
         owner.translateToRelative(t);
 
-        Rectangle bounds = owner.getBounds();
-        t.performTranslate(-bounds.x, -bounds.y);
-
     }
 
     /**

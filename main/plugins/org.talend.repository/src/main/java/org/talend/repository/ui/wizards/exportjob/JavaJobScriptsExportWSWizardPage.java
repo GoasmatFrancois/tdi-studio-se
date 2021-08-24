@@ -525,13 +525,21 @@ public class JavaJobScriptsExportWSWizardPage extends JavaJobScriptsExportWizard
         	exportTypeCombo.setText(jType.label);
         	
         	if (jType.equals(JobExportType.OSGI)) {
-            	exportTypeCombo.remove(JobExportType.MSESB.label);
-            	exportTypeCombo.remove(JobExportType.MSESB_IMAGE.label);
-            	exportTypeCombo.setEnabled(false);
+            	for (String item : exportTypeCombo.getItems()) {
+                    if (item != null && (item.equalsIgnoreCase(JobExportType.MSESB.label) || 
+                        item.equalsIgnoreCase(JobExportType.MSESB_IMAGE.label))) {
+                        exportTypeCombo.remove(item);
+                    }
+                }
+                exportTypeCombo.setEnabled(false);
             }
             
             if (jType.equals(JobExportType.MSESB) || jType.equals(JobExportType.MSESB_IMAGE)) {
-            	exportTypeCombo.remove(JobExportType.OSGI.label);
+                for (String item : exportTypeCombo.getItems()) {
+                    if (item != null && item.equalsIgnoreCase(JobExportType.OSGI.label)) {
+                        exportTypeCombo.remove(item);
+                    }
+                }
             }
         }
         

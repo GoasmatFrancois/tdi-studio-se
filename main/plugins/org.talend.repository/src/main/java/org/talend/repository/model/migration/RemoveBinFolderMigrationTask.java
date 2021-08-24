@@ -49,8 +49,6 @@ public class RemoveBinFolderMigrationTask extends AbstractProjectMigrationTask {
 
     public List<ERepositoryObjectType> getTypes() {
         List<ERepositoryObjectType> toReturn = new ArrayList<ERepositoryObjectType>();
-        toReturn.add(ERepositoryObjectType.BUSINESS_PROCESS);
-        toReturn.add(ERepositoryObjectType.SVG_BUSINESS_PROCESS);
         toReturn.add(ERepositoryObjectType.DOCUMENTATION);
         toReturn.add(ERepositoryObjectType.METADATA_CONNECTIONS);
         toReturn.add(ERepositoryObjectType.METADATA_SAPCONNECTIONS);

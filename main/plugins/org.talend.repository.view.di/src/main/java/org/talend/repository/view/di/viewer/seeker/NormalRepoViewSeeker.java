@@ -34,7 +34,6 @@ public class NormalRepoViewSeeker extends AbstractRepoViewSeeker {
     protected List<ERepositoryObjectType> getValidationTypes() {
         List<ERepositoryObjectType> validationTypes = super.getValidationTypes();
         validationTypes.add(ERepositoryObjectType.PROCESS);
-        validationTypes.add(ERepositoryObjectType.BUSINESS_PROCESS);
         validationTypes.add(ERepositoryObjectType.CONTEXT);
         validationTypes.add(ERepositoryObjectType.SQLPATTERNS);
 

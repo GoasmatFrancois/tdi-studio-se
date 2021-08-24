@@ -730,16 +730,13 @@ public class StatusManagerSettingPage extends ProjectSettingPage {
                 if (isTechinalStatus()) {
                     // Modified by Marvin Wang on Jan.7, 2011 for bug Talend DI TDI-19154, should not use
                     // obj.equals(constant) that will cause NPE.
-                    if (!type.equals(ERepositoryObjectType.DOCUMENTATION) && !type.equals(ERepositoryObjectType.BUSINESS_PROCESS)
+                    if (!type.equals(ERepositoryObjectType.DOCUMENTATION)
                             && !type.equals(ERepositoryObjectType.JOBLET_DOC)) {
-                        // if (!type.equals(ERepositoryObjectType.DOCUMENTATION) &&
-                        // !type.equals(ERepositoryObjectType.BUSINESS_PROCESS)
-                        // && !type.equals(ERepositoryObjectType.JOBLETS)) {
                         itemTable.setRedraw(false);
                         tableItem = new TableItem(itemTable, SWT.NONE);
                     }
                 } else if (isDocumentStatus()) {
-                    if (type.equals(ERepositoryObjectType.DOCUMENTATION) || type.equals(ERepositoryObjectType.BUSINESS_PROCESS)) {
+                    if (type.equals(ERepositoryObjectType.DOCUMENTATION)) {
                         itemTable.setRedraw(false);
                         tableItem = new TableItem(itemTable, SWT.NONE);
                     }
@@ -806,7 +803,7 @@ public class StatusManagerSettingPage extends ProjectSettingPage {
                     GridData data = new GridData(GridData.FILL_HORIZONTAL);
                     statusItemCombo.setLayoutData(data);
                     statusItemCombo.setEditable(false);
-                    if (!type.equals(ERepositoryObjectType.DOCUMENTATION) && !type.equals(ERepositoryObjectType.BUSINESS_PROCESS)) {
+                    if (!type.equals(ERepositoryObjectType.DOCUMENTATION)) {
                         statusItemCombo.setItems(toArray(technicalStatusList));
                         statusItemCombo.select(0);
                         if (!object.getProperty().getOldStatusCode().equals("DEV")) {
@@ -932,14 +929,12 @@ public class StatusManagerSettingPage extends ProjectSettingPage {
                     for (RepositoryObject object : getModifiedVersionItems()) {
                         if (techinalButton.getSelection()) {
                             ERepositoryObjectType type = object.getRepositoryNode().getContentType();
-                            if (!type.equals(ERepositoryObjectType.DOCUMENTATION)
-                                    && !type.equals(ERepositoryObjectType.BUSINESS_PROCESS)) {
+                            if (!type.equals(ERepositoryObjectType.DOCUMENTATION)) {
                                 object.setStatusCode(newStatus);
                             }
                         } else {
                             ERepositoryObjectType type = object.getRepositoryNode().getContentType();
-                            if (type.equals(ERepositoryObjectType.DOCUMENTATION)
-                                    || type.equals(ERepositoryObjectType.BUSINESS_PROCESS)) {
+                            if (type.equals(ERepositoryObjectType.DOCUMENTATION)) {
                                 object.setStatusCode(newStatus);
                             }
                         }
