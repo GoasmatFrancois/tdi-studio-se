@@ -47,8 +47,8 @@ public class ComponentsHelpUtil {
 
     public static String calOnLineHelpURL(String componentName) {
         StringBuilder sb = new StringBuilder("https://document-link.us.cloud.talend.com/std_");
-        sb.append(componentName.toLowerCase());
-        sb.append("?&version="); //$NON-NLS-1$
+        sb.append(componentName);
+        sb.append("?version="); //$NON-NLS-1$
         if (!StringUtils.isEmpty(System.getProperty(JVM_PARAM_ONLINE_HELP_VERSION))) {
             sb.append(System.getProperty(JVM_PARAM_ONLINE_HELP_VERSION));
         } else {
