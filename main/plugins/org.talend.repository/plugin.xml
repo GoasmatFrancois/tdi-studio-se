@@ -3731,6 +3731,7 @@
               id="org.talend.repository.model.migration.EncryptClientSecretMicrosoftCRMMigrationTask"
               name="EncryptClientSecretMicrosoftCRMMigrationTask"
               version="8.0.1">
+<<<<<<< Upstream, based on 70314bd2b432e79fd7dac6a7e1fecb928d9164c5
 <<<<<<< HEAD
         </projecttask>
         <projecttask
@@ -3769,6 +3770,9 @@
               name="ReplaceMappingForGreenplumDatabaseMigrationTask"
               version="8.0.1">
 =======
+=======
+        </projecttask>
+>>>>>>> 638e852 fixed pom file structure
         <projecttask
               beforeLogon="true"
               breaks="8.0.1"
@@ -3778,8 +3782,11 @@
               name="RenameTimeoutParameterstRESTClient"
               version="8.0.1">
         </projecttask>
+<<<<<<< Upstream, based on 70314bd2b432e79fd7dac6a7e1fecb928d9164c5
 >>>>>>> e8f0b67207 (Added rename timeout parameters for tRESTClient migration)
         </projecttask>
+=======
+>>>>>>> 638e852 fixed pom file structure
    </extension>
 
    <extension
