@@ -3736,6 +3736,7 @@
         </projecttask>
         <projecttask
               beforeLogon="true"
+<<<<<<< Upstream, based on 70314bd2b432e79fd7dac6a7e1fecb928d9164c5
               breaks="8.0.1"
               class="org.talend.repository.model.migration.RemoveDestinationPropertyExtractJSONFieldsMigrationTask"
               description="Remove DESTINATION property from tExtractJSONFields"
@@ -3776,11 +3777,14 @@
         <projecttask
               beforeLogon="true"
               breaks="8.0.1"
+=======
+              breaks="8.8.8"
+>>>>>>> 43cc95f Changed version in pom for migration
               class="org.talend.repository.model.migration.RenameTimeoutParameterstRESTClient"
               description="Rename timeout parameters for tRESTClient"
               id="org.talend.repository.model.migration.RenameTimeoutParameterstRESTClient"
               name="RenameTimeoutParameterstRESTClient"
-              version="8.0.1">
+              version="8.8.8">
         </projecttask>
 <<<<<<< Upstream, based on 70314bd2b432e79fd7dac6a7e1fecb928d9164c5
 >>>>>>> e8f0b67207 (Added rename timeout parameters for tRESTClient migration)
