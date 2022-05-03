@@ -100,7 +100,7 @@ if ((metadatas!=null)&&(metadatas.size()>0)) {
 					}
 					%>
 	
-					class ThreadXMLField_<%=cid%> extends Thread {
+					class ThreadXMLField_<%=cid%> implements java.lang.Runnable {
 						<%
 						if(destination.indexOf("tCouchbaseOutput_")==0 || destination.indexOf("tCouchDBOutput_")==0){
 						%>
@@ -167,8 +167,9 @@ globalMap.put("<%=cid%>_ERROR_MESSAGE",te.getMessage());
 					<%} else {%>
 						ThreadXMLField_<%=cid%> txf_<%=cid%> = new ThreadXMLField_<%=cid%>(listGroupby_<%=cid%>, flows_<%=cid%>);
 					<%}%>
-					globalMap.put("wrtXMLFieldIn_<%=cid%>", txf_<%=cid%>);
-					txf_<%=cid%>.start();
+					
+					java.util.concurrent.Future<?> future_<%=cid%> = es.submit(txf_<%=cid%>);
+					globalMap.put("wrtXMLFieldIn_<%=cid%>", future_<%=cid%>);
 				<%
 				}else{
 					if(destination.indexOf("tCouchbaseOutput_")==0 || destination.indexOf("tCouchDBOutput_")==0){

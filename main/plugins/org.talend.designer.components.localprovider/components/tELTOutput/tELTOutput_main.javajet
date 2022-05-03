@@ -13,7 +13,7 @@ imports="
         java.util.List
         java.util.ArrayList
         java.util.LinkedList
-    java.util.StringJoiner
+        java.util.StringJoiner
         java.util.Map
         java.util.HashMap
 "
@@ -80,6 +80,7 @@ skeleton="../templates/db_output_bulk.skeleton"
     String dbuser = null;
     boolean useExistingConn = false;
     boolean dryRun = false;
+    boolean autoWrapColumnName = false;
     if(previousNode != null) {
         dryRun = ("true").equals(ElementParameterParser.getValue(previousNode, "__DRY_RUN__"));
         if(!dryRun){
@@ -88,6 +89,7 @@ skeleton="../templates/db_output_bulk.skeleton"
             dbuser = ElementParameterParser.getValue(previousNode, "__USER__");
             useExistingConn = ("true").equals(ElementParameterParser.getValue(previousNode, "__USE_EXISTING_CONNECTION__"));
         }
+        autoWrapColumnName = "true".equals(ElementParameterParser.getValue(previousNode, "__ACTIVE_DATABASE_DELIMITED_IDENTIFIERS__"));
     }
 
     boolean useWhereTable = ("true").equals(ElementParameterParser.getValue(node, "__USE_WHERE_CONDITIONS_TABLE__"));
@@ -140,7 +142,7 @@ skeleton="../templates/db_output_bulk.skeleton"
             columnList = metadata.getListColumns();
         }
     }
-
+    
     if(columnList != null && columnList.size()>0){
         StringBuilder insertColName = new StringBuilder();
 
@@ -148,6 +150,7 @@ skeleton="../templates/db_output_bulk.skeleton"
         boolean isUpdate = "UPDATE".equals(dataAction);
         List<Map<String, String>> setColumns = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node, "__SET_COLUMN__");
         int counterOuter = 0;
+
         for(IMetadataColumn column : columnList){
             String suffix = ",";
 
@@ -159,12 +162,16 @@ skeleton="../templates/db_output_bulk.skeleton"
             if(columnName==null || columnName.trim().isEmpty()){
                 columnName = column.getLabel();
             }
-            if (columnName.startsWith("\"")) {
-                columnName = "\\" + columnName;
+
+            //use empty string as need to keep old action if not autoWrapColumnName
+            if(MYSQL.equalsIgnoreCase(dbmsId) || SINGLESTORE.equalsIgnoreCase(dbmsId) || "amazon_aurora_id".equalsIgnoreCase(dbmsId)) {
+                columnName = ColumnHelper.wrapColumnNameByGraveAccentIfNecessary(autoWrapColumnName, "", columnName, "");
+            } else if(ACCESS.equalsIgnoreCase(dbmsId) || MSSQL.equalsIgnoreCase(dbmsId)) {
+                columnName = ColumnHelper.wrapColumnNameByBracketIfNecessary(autoWrapColumnName, "", columnName, "");
+            } else {
+                columnName = ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, "", columnName, "");
             }
-            if (columnName.endsWith("\"") && !columnName.endsWith("\\\"")) {
-                columnName = columnName.substring(0, columnName.lastIndexOf("\"")) + "\\" + "\"";
-            }
+            
           boolean isUpdateColumn = "true".equals(setColumns.get(counterOuter).get("UPDATE_COLUMN"));
           insertColName.append(columnName).append(suffix);
           if (isUpdate && isUpdateColumn) {
@@ -289,8 +296,8 @@ skeleton="../templates/db_output_bulk.skeleton"
             Manager manager = null;
 
             String tableAction = ElementParameterParser.getValue(node,"__TABLE_ACTION__");
-
-            List<Column> stmtStructure = getELTManager(dbmsId, cid, node).createColumnList(columnList, false, null, null);
+            
+            List<Column> stmtStructure = getELTManager(dbmsId, cid, node, autoWrapColumnName).createColumnList(columnList, false, null, null);
 
             String table = tableName;
             dbLog = new DBLogUtil(node);

@@ -343,6 +343,10 @@ public <%=JavaTypesManager.getTypeToGenerate(ctxParam.getType(),true)%> get<%=Ch
 	public Integer errorCode = null;
 	private String currentComponent = "";
 	<%
+	// is necessary? avoid some compiler issue as var name not found? TODO consider remove it, also the currentComponent above
+	%>
+	private String cLabel =  null;
+	<%
 	//tParallelize will wrap globalMap with synchronizedMap
 	if(isRunInMultiThread || NodeUtil.containsMultiThreadComponent(process)){
 	%>
@@ -385,11 +389,101 @@ public <%=JavaTypesManager.getTypeToGenerate(ctxParam.getType(),true)%> get<%=Ch
 
 <%
 	INode jobCatcherNode = null;
+
+	//one matched component or part, one thread
+	//why not computed by cpu or resource : please image this case : 
+	//loop==>(input==>(twritexmlfield A)==>(twritexmlfield B)==>(twritexmlfield C)==>output), dead lock as cycle dependency and only one thead in thread pool
+	//maybe newCachedThreadPool is a better idea,  but that have risk for creating more threads, then more memory for TDI-47230
+	//why not generate thread pool object in subprocess scope : 
+	// 1: major reason : difficult to control the var scope, somewhere can't access it, then compiler issue
+	// 2: we may need this thread pool for bigger scope, not only for twritexmlfield/twritejsonfield in future
+	// 3: we don't suppose this thread pool cost big resource after all tasks done, so we can shutdown it more later,
+	//		for example, most time, user will use less than 3 twritexmlfield in one job, then 3 threads thread pool, we can close them in job finish code part, 
+	//		not a big cost to keep that. And of course, we best to start&clean it in subprocess finish, but that's risk of 1 above.
+	int threadPoolSize = 0;
+	boolean tHMapExists = false;
+	boolean tHMapOutExists = false;
+	boolean tRESTRequestLoopExists = false;
 	for (INode nodeInProcess : processNodes) {
 		String componentName = nodeInProcess.getComponent().getName();
-		if("tJobStructureCatcher".equals(componentName)) {
+
+		if(jobCatcherNode==null && "tJobStructureCatcher".equals(componentName)) {
 			jobCatcherNode = nodeInProcess;
-			break;
+			continue;
+		}
+
+		if(!nodeInProcess.isActivate()) continue;
+
+		if("tHMap".equals(componentName)) {
+			tHMapExists = true;
+			continue;
+		}
+
+		if("tHMapOut".equals(componentName)) {
+			tHMapOutExists = true;
+			continue;
+		}
+
+		if("tRESTRequestLoop".equals(componentName)) {
+			tRESTRequestLoopExists = true;
+			continue;
+		}
+		
+		if("tWriteXMLFieldOut".equals(componentName)) {
+			IConnection nextMergeConn = NodeUtil.getNextMergeConnection(nodeInProcess);
+			if(nextMergeConn == null || nextMergeConn.getInputId()==1){
+				threadPoolSize++;
+			}
+		}
+	}
+
+	if(threadPoolSize>0) {
+		if(tRESTRequestLoopExists) {//miscroservice
+%>
+			private class DaemonThreadFactory implements java.util.concurrent.ThreadFactory {
+				java.util.concurrent.ThreadFactory factory = java.util.concurrent.Executors.defaultThreadFactory();
+				
+				public java.lang.Thread newThread(java.lang.Runnable r) {
+					java.lang.Thread t = factory.newThread(r);
+					t.setDaemon(true);
+					return t;
+				}
+			}
+<%
+		}
+
+		if(tHMapExists || tHMapOutExists) {
+%>
+private final java.util.concurrent.ExecutorService es = java.util.concurrent.Executors.newFixedThreadPool(<%=threadPoolSize%> <%if(tRESTRequestLoopExists) {%>,new DaemonThreadFactory()<%}%>);
+<%
+		} else {
+%>
+private final java.util.concurrent.ExecutorService es = java.util.concurrent.Executors.newCachedThreadPool(<%if(tRESTRequestLoopExists) {%>new DaemonThreadFactory()<%}%>);
+<%
+		}
+
+		if(tRESTRequestLoopExists) {//miscroservice
+%>
+		{
+			java.lang.Runtime.getRuntime().addShutdownHook(new java.lang.Thread() {
+				public void run() {
+					es.shutdown();
+					try {
+						if(!es.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS)) {
+							es.shutdownNow();
+							if(!es.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS)) {
+
+							}
+						}
+					} catch (java.lang.InterruptedException ie) {
+						es.shutdownNow();
+					} catch (java.lang.Exception e) {
+
+					}
+				}
+			});
+		}
+<%
 		}
 	}
 	
@@ -507,7 +601,10 @@ private class TalendException extends Exception {
 
 	private java.util.Map<String, Object> globalMap = null;
 	private Exception e = null;
+	
 	private String currentComponent = null;
+	private String cLabel =  null;
+	
 	private String virtualComponentName = null;
 	
 	public void setVirtualComponentName (String virtualComponentName){
@@ -518,6 +615,11 @@ private class TalendException extends Exception {
 		this.currentComponent= errorComponent;
 		this.globalMap = globalMap;
 		this.e = e;
+	}
+	
+	private TalendException(Exception e, String errorComponent, String errorComponentLabel, final java.util.Map<String, Object> globalMap) {
+		this(e, errorComponent, globalMap);
+		this.cLabel = errorComponentLabel;
 	}
 
 	public Exception getException() {
@@ -578,6 +680,15 @@ private class TalendException extends Exception {
 <%
 		boolean needCatchTalendException = false;
 		
+		if(enableLogStash) {
+%>
+		if(enableLogStash) {
+			<%=jobCatcherNode.getUniqueName() %>.addJobExceptionMessage(currentComponent, cLabel, null, e);
+			<%=jobCatcherNode.getDesignSubjobStartNode().getUniqueName() %>Process(globalMap);
+		}
+<%
+		}
+		
 		if (process.getNodesOfType("tLogCatcher").size() > 0) {
 			List<INode> logCatchers = (List<INode>)process.getNodesOfType("tLogCatcher");
 			for (INode logCatcher : logCatchers) {
@@ -588,7 +699,7 @@ private class TalendException extends Exception {
 <%
 				}
 			}
-
+			
 			INode virtualNCatchNode = null;
 			boolean hasRealCatchNode = false;
 			for (INode logCatcher : logCatchers) {

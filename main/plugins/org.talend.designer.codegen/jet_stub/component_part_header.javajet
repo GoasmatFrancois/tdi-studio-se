@@ -137,7 +137,7 @@
 	}
 	%>
 	currentComponent="<%=node.getUniqueName() %>";
-
+	
 	<%
 	connSet =  new HashSet<IConnection>();
 	connSet.addAll(node.getIncomingConnections(EConnectionType.FLOW_MAIN));
@@ -154,6 +154,17 @@
 	
 	//about performance monitor, no way to support more than one job catcher component, also that is not necessary
 	final String subprocessName4Catcher = logstashCurrent ? jobCatcherNodes.get(0).getDesignSubjobStartNode().getUniqueName() : null;
+	
+	if(logstashCurrent) {
+		String currentLabel = ElementParameterParser.getValue(node, "__LABEL__");
+		if(currentLabel==null || "".equals(currentLabel) || "__UNIQUE_NAME__".equals(currentLabel) || cid.endsWith(NodeUtil.getLabel(node))) {
+			//not generate the unnecessary statement if label is default one
+		} else {
+		%>
+			cLabel="<%=NodeUtil.getLabel(node)%>";
+		<%
+		}
+	}
 	
 	if ((codePart.equals(ECodePart.BEGIN))&&(stat || logstashCurrent)&&connSet.size()>0) {
 		if(containsTPartitioner) {

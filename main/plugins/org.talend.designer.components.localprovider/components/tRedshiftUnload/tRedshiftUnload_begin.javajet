@@ -50,6 +50,8 @@ imports="
 <%
 		log4jCodeGenerateUtil.useExistConnection(node);
 	} else {
+	        			int driveVersion = "DRIVER_V2".equals(ElementParameterParser.getValue(node, "__DRIVER_VERSION__"))? 2 : 1;
+                        boolean useStringProperties = "true".equals(ElementParameterParser.getValue(node, "__USE_STRING_PROPERTIES__"));
 %>
 		String driverClass_<%=cid%> = "com.amazon.redshift.jdbc42.Driver";
 		Class.forName(driverClass_<%=cid%>).newInstance();
@@ -69,7 +71,7 @@ imports="
                          .append("/")
                          .append(<%=dbName%>);
 <%
-        if(dbproperties != null && !"\"\"".equals(dbproperties) && !"".equals(dbproperties)) {
+        if(( useStringProperties || driveVersion == 1) && dbproperties != null && !"\"\"".equals(dbproperties) && !"".equals(dbproperties)) {
 %>
         sbuilder_<%=cid%>.append("?").append(<%=dbproperties%>);
 <%
@@ -86,8 +88,13 @@ imports="
         <%}%>
         String dbUser_<%=cid %> = <%=userName%>;
         String dbPwd_<%=cid %> = decryptedPass_<%=cid%>;
-<%      
-		log4jCodeGenerateUtil.connect(node);
+<%
+        if(driveVersion == 2 && !useStringProperties){
+		    List<Map<String, String>> properties = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node, "__ENTRY_PROPERTIES__");
+		        log4jCodeGenerateUtil.connectWithProperties(node);
+		    } else {
+		        log4jCodeGenerateUtil.connect(node);
+		}
 	}
 	
 	boolean	log4jEnabled = ("true").equals(ElementParameterParser.getValue(node.getProcess(), "__LOG4J_ACTIVATE__"));

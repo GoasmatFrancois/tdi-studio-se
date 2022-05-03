@@ -88,7 +88,7 @@ public abstract class AbstractJSONStepForm extends AbstractForm {
                 JSONConnectionContextHelper.openInConetxtModeDialog();
             } else {
                 Map<ContextItem, List<ConectionAdaptContextVariableModel>> variableModels = JSONConnectionContextHelper
-                        .exportAsContext(connectionItem, getConetxtParams());
+                        .exportAsContext(connectionItem, getContextParams());
                 contextManager = JSONConnectionContextHelper.contextManager;
 
                 if (variableModels != null) {
@@ -101,11 +101,11 @@ public abstract class AbstractJSONStepForm extends AbstractForm {
                                 Map<String, String> map = ((JobContextManager) contextManager).getNameMap();
                                 // set properties for context mode
                                 JSONConnectionContextHelper.setPropertiesForContextMode(connectionItem, contextItem,
-                                        getConetxtParams(), map);
+                                        getContextParams(), map);
                             }
                         } else {
                             // set properties for exist context
-                            JSONConnectionContextHelper.setPropertiesForExistContextMode(connectionItem, getConetxtParams(),
+                            JSONConnectionContextHelper.setPropertiesForExistContextMode(connectionItem, getContextParams(),
                                     variableModels);
                         }
                         // refresh current UI.
@@ -144,9 +144,9 @@ public abstract class AbstractJSONStepForm extends AbstractForm {
      * @see org.talend.repository.ui.swt.utils.AbstractForm#getConetxtParams()
      */
     @Override
-    protected Set<IConnParamName> getConetxtParams() {
+    protected Set<IConnParamName> getContextParams() {
         // TODO Auto-generated method stub
-        return super.getConetxtParams();
+        return super.getContextParams();
     }
 
 }

@@ -63,10 +63,6 @@ if("".equals(tempPath))tempPath="\"\"";
 
     System.setProperty("javax.xml.accessExternalSchema", "all");
 
-	//shade the log level for DynamicClientFactory.class
-	java.util.logging.Logger LOG_<%=cid%> = org.apache.cxf.common.logging.LogUtils.getL7dLogger(org.apache.cxf.endpoint.dynamic.DynamicClientFactory.class);
-	LOG_<%=cid%>.setLevel(java.util.logging.Level.WARNING);
-
 	org.talend.webservice.helper.Utils util_<%=cid%> = new org.talend.webservice.helper.Utils();
 
     org.talend.webservice.helper.conf.ServiceHelperConfiguration config_<%=cid%> = new org.talend.webservice.helper.conf.ServiceHelperConfiguration();

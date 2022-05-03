@@ -30,5 +30,8 @@ public interface JobAuditLogger extends EventAuditLogger {
     
     @AuditEvent(category = "schema", message = "{connection_name} : {schema} from {source_id} to {target_id}", level = LogLevel.INFO)
     void schema(Context context);
+    
+    @AuditEvent(category = "exception", message = "Exception", level = LogLevel.INFO)
+    void exception(Context context);
 
 }

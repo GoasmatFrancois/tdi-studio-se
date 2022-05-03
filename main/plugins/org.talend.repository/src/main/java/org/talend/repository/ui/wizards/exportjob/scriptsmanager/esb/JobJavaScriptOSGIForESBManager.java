@@ -405,7 +405,7 @@ public class JobJavaScriptOSGIForESBManager extends JobJavaScriptsManager {
         Set<ModuleNeeded> neededModules = LastGenerationInfo.getInstance().getModulesNeededWithSubjobPerJob(processId,
                 processVersion);
         for (ModuleNeeded module : neededModules) {
-            if (isCompiledLib(module)) {
+            if (isCompiledLib(module) || isRESTRequestNeededLibs(module)) {
                 addModuleNeededsInMap(getCompiledModules(), processId, processVersion, module);
             } else if (isRequireBundleLib(module)) {
                 addModuleNeededsInMap(getRequireBundleModules(), processId, processVersion, module);
@@ -413,6 +413,10 @@ public class JobJavaScriptOSGIForESBManager extends JobJavaScriptsManager {
                 addModuleNeededsInMap(getExcludedModules(), processId, processVersion, module);
             }
         }
+    }
+
+    private boolean isRESTRequestNeededLibs(ModuleNeeded module) {
+        return module.getModuleName().startsWith("delight-rhino-sandbox") || module.getModuleName().startsWith("rhino");
     }
 
     @Override
@@ -640,6 +644,20 @@ public class JobJavaScriptOSGIForESBManager extends JobJavaScriptsManager {
         } 
         for (JobInfo subjobInfo : ProcessorUtilities.getChildrenJobInfo(processItem)) {
             nodeType = EmfModelUtils.getComponentByName(subjobInfo.getProcessItem(), "tMDMConnection", "tMDMInput", "tMDMOutput");
+            if (nodeType != null) {
+                return nodeType;
+            }
+        }
+        return null;
+    }
+
+    private static NodeType getRESTClientComponent(ProcessItem processItem) {
+        NodeType nodeType = EmfModelUtils.getComponentByName(processItem, "tRESTClient");
+        if (nodeType != null) {
+            return nodeType;
+        }
+        for (JobInfo subjobInfo : ProcessorUtilities.getChildrenJobInfo(processItem)) {
+            nodeType = EmfModelUtils.getComponentByName(subjobInfo.getProcessItem(), "tRESTClient");
             if (nodeType != null) {
                 return nodeType;
             }
@@ -1251,6 +1269,13 @@ public class JobJavaScriptOSGIForESBManager extends JobJavaScriptsManager {
                     break;
                 }
             }
+        }
+
+        // https://jira.talendforge.org/browse/APPINT-34443
+        NodeType restClientComponent = getRESTClientComponent(processItem);
+        if (null != restClientComponent) {
+            importPackages.add("org.apache.cxf.endpoint");
+            importPackages.add("org.apache.cxf.service.model");
         }
 
         if (ERepositoryObjectType.PROCESS_MR == ERepositoryObjectType.getItemType(processItem)) {

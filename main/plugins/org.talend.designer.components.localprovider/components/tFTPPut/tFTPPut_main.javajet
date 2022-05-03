@@ -228,15 +228,17 @@ globalMap.put("<%=cid%>_ERROR_MESSAGE",e_<%=cid%>.getMessage());
 
             java.util.Set<String> remoteExistsFiles_<%=cid%> = new java.util.HashSet<>();
 
-            String[] ftpFileNames_<%=cid%> = ftp_<%=cid %>.listNames();
-            for (String ftpFileName : ftpFileNames_<%=cid%>) {
-                if("".equals(map<%=cid %>.get(key<%=cid %>))){
-                    if (ftpFileName.matches(mask<%=cid %>)) {
-                        remoteExistsFiles_<%=cid%>.add(ftpFileName);
-                    }
-                }else{
-                    if (ftpFileName.matches(map<%=cid %>.get(key<%=cid %>))) {
-                        remoteExistsFiles_<%=cid%>.add(ftpFileName);
+            final String[] ftpFileNames_<%=cid%> = ftp_<%=cid %>.listNames();
+            if (ftpFileNames_<%=cid%> != null) {
+                for (String ftpFileName : ftpFileNames_<%=cid%>) {
+                    if("".equals(map<%=cid %>.get(key<%=cid %>))){
+                        if (ftpFileName.matches(mask<%=cid %>)) {
+                            remoteExistsFiles_<%=cid%>.add(ftpFileName);
+                        }
+                    }else{
+                        if (ftpFileName.matches(map<%=cid %>.get(key<%=cid %>))) {
+                            remoteExistsFiles_<%=cid%>.add(ftpFileName);
+                        }
                     }
                 }
             }

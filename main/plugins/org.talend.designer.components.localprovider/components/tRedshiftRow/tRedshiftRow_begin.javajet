@@ -4,6 +4,7 @@ imports="
 			org.talend.core.model.process.ElementParameterParser 
 			org.talend.designer.codegen.config.CodeGeneratorArgument
 			java.util.List
+			java.util.Map
 			java.util.ArrayList
 		" 
 %>
@@ -11,6 +12,10 @@ imports="
 <%
 
 	class DBRowBeginUtil extends DefaultDBRowUtil{
+
+					int driveVersion;
+        			Boolean useStringProperties ;
+        			String logLevel;
 	
 		public void beforeComponentProcess(INode node){
 			super.beforeComponentProcess(node);
@@ -19,6 +24,9 @@ imports="
 	    
 		public void setURL(INode node) {
 			String jdbcUrl = ElementParameterParser.getValue(node, "__JDBC_URL__");
+			driveVersion = "DRIVER_V2".equals(ElementParameterParser.getValue(node, "__DRIVER_VERSION__"))? 2 : 1;
+            useStringProperties = "true".equals(ElementParameterParser.getValue(node, "__USE_STRING_PROPERTIES__"));
+
 %>
             StringBuilder sbuilder_<%=cid%> = new StringBuilder();
             sbuilder_<%=cid%>.append("jdbc:redshift:");
@@ -36,7 +44,7 @@ imports="
                              .append("/")
                              .append(<%=dbname%>);
 <%
-            if(dbproperties != null && !"\"\"".equals(dbproperties) && !"".equals(dbproperties)) {
+            if(( useStringProperties || driveVersion == 1) && dbproperties != null && !"\"\"".equals(dbproperties) && !"".equals(dbproperties)) {
 %>
                 sbuilder_<%=cid%>.append("?").append(<%=dbproperties%>);
 <%
@@ -45,6 +53,30 @@ imports="
             String url_<%=cid%> = sbuilder_<%=cid%>.toString();
 <%
 		}
+
+		public void newConnection(INode node) {
+        				     if(driveVersion == 2 && !useStringProperties){
+        				     List<Map<String, String>> properties = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node, "__ENTRY_PROPERTIES__");
+                %>
+                            java.util.Properties properties_<%=cid%> = new java.util.Properties();
+                                            properties_<%=cid%>.setProperty("user",dbUser_<%=cid%>);
+                                            properties_<%=cid%>.setProperty("password",dbPwd_<%=cid%>);
+                                            <%
+                                            for(Map<String, String> entry : properties){
+                                            %>
+                                            properties_<%=cid%>.setProperty(<%=entry.get("KEY")%>,<%=entry.get("VALUE")%>);
+                                            <%}%>
+
+                        	conn_<%=cid%> = java.sql.DriverManager.getConnection(url_<%=cid%>,properties_<%=cid%>);
+                <%
+                             }else{
+
+                %>
+                             conn_<%=cid%> = java.sql.DriverManager.getConnection(url_<%=cid%>,dbUser_<%=cid%>,dbPwd_<%=cid%>);
+                <%
+
+                             }
+                		}
 		
 		public String getDirverClassName(INode node){
 			return "com.amazon.redshift.jdbc42.Driver";

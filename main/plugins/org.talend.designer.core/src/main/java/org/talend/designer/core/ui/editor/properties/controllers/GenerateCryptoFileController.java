@@ -77,7 +77,10 @@ public class GenerateCryptoFileController extends AbstractElementPropertySection
             String passwordM1 =
                     removeQuotes(
                             service.getOriginalValue(node, ElementParameterParser.getValue(node, "__PASSWORD_M1__")));
-
+            String algoVersion =
+                    removeQuotes(
+                            service.getOriginalValue(node, ElementParameterParser.getValue(node, "__ALGO_VERSION__")));
+            
             boolean isParameterValidation = service.checkParameterValidation(cryptoFilePath, passwordM1);
             if (!isParameterValidation) {
                 return;
@@ -100,7 +103,7 @@ public class GenerateCryptoFileController extends AbstractElementPropertySection
                     disp.syncExec(new Runnable() {
 
                         public void run() {
-                            service.generateCryptoFile(passwordM1, cryptoMethod, cryptoFilePath);
+                            service.generateCryptoFile(passwordM1, cryptoMethod, cryptoFilePath, Integer.parseInt(algoVersion));
                         }
                     });
                 }

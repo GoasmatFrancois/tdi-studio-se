@@ -39,7 +39,7 @@ if ((metadatas!=null)&&(metadatas.size()>0)) {
 				} 
 				IConnection nextMergeConn = NodeUtil.getNextMergeConnection(node);
 				if(nextMergeConn != null && nextMergeConn.getInputId()>1 && startNodeCid != null){
-	   			%>
+					%>
 					txf_<%=cid%>.join();
 					
 					if(txf_<%=cid%>.getLastException()!=null) {

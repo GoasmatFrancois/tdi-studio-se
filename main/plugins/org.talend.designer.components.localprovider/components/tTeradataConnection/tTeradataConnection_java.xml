@@ -149,8 +149,7 @@
 
    <CODEGENERATION>
      <IMPORTS>
-        <IMPORT NAME="Driver-Teradata" MODULE="terajdbc4-16.20.00.02.jar" MVN="mvn:com.teradata/terajdbc4/16.20.00.02" REQUIRED="true" />
-        <IMPORT NAME="Driver-Teradata" MODULE="tdgssconfig-16.20.00.02.jar" MVN="mvn:com.teradata/tdgssconfig/16.20.00.02" REQUIRED="true" />
+        <IMPORT NAME="Driver-Teradata" MODULE="terajdbc4-17.10.00.27.jar" MVN="mvn:com.teradata.jdbc/terajdbc4/17.10.00.27" REQUIRED="true" />
         <IMPORT NAME="slf4j-api-1.7.29.jar" MODULE="slf4j-api-1.7.29.jar" MVN="mvn:org.slf4j/slf4j-api/1.7.29" REQUIRED_IF="USE_SHARED_CONNECTION =='true'" />
         <IMPORT NAME="slf4j-log4j12-1.7.29.jar" MODULE="slf4j-log4j12-1.7.29.jar" MVN="mvn:org.slf4j/slf4j-log4j12/1.7.29" REQUIRED_IF="USE_SHARED_CONNECTION =='true'" />
      </IMPORTS>

@@ -47,6 +47,8 @@ public class DummyComponent extends AbstractComponent {
 
     private String originalFamilyName;
 
+    private boolean missingComponent = false;
+
     public DummyComponent(NodeType nodeType) {
         icon32 = ImageProvider.getImageDesc(EImage.COMPONENT_MISSING);
         icon16 = ImageProvider.getImageDesc(EImage.COMPONENT_MISSING);
@@ -59,6 +61,14 @@ public class DummyComponent extends AbstractComponent {
         icon16 = ImageProvider.getImageDesc(EImage.COMPONENT_MISSING);
         this.componentName = componentName;
         this.originalFamilyName = "";
+    }
+
+    public boolean isMissingComponent() {
+        return this.missingComponent;
+    }
+
+    public void setMissingComponent(boolean missing) {
+        this.missingComponent = missing;
     }
 
     /*
@@ -560,6 +570,7 @@ public class DummyComponent extends AbstractComponent {
 
     }
 
+    @Override
     public void setOriginalFamilyName(String originalFamilyName) {
         this.originalFamilyName = originalFamilyName;
     }

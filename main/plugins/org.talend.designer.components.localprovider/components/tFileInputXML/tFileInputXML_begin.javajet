@@ -392,7 +392,7 @@ class XML_API_<%=cid%>{
 
     public boolean isEmpty(org.dom4j.Node node) throws javax.xml.transform.TransformerException {
         if (node != null) {
-            return node.getText().length() == 0;
+            return node.getStringValue().isEmpty();
         }
         return false;
     }

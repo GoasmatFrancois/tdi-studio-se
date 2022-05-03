@@ -189,14 +189,16 @@
       <IMPORT NAME="slf4j-api-1.7.16.jar" MODULE="slf4j-api-1.7.16.jar" MVN="mvn:org.slf4j/slf4j-api/1.7.16" REQUIRED_IF="SERVER == 'ACTIVEMQ'" />
       <IMPORT NAME="slf4j-log4j12-1.7.16.jar" MODULE="slf4j-log4j12-1.7.16.jar" MVN="mvn:org.slf4j/slf4j-log4j12/1.7.16" REQUIRED_IF="SERVER == 'ACTIVEMQ'" />
       
-      <IMPORT NAME="WEBSPHERE MQ LIB" MODULE="com.ibm.mq-8.0.0.9.jar" MVN="mvn:com.ibm.mq/com.ibm.mq/8.0.0.9"  REQUIRED_IF="(SERVER == 'WEBSPHERE')" />
-      <IMPORT NAME="WEBSPHERE MQ LIB" MODULE="com.ibm.mq.allclient-8.0.0.9.jar" MVN="mvn:com.ibm.mq/com.ibm.mq.allclient/8.0.0.9"  REQUIRED_IF="(SERVER == 'WEBSPHERE')" />
-	  <IMPORT NAME="WEBSPHERE JMS LIB" MODULE="com.ibm.mqjms-8.0.0.9.jar" MVN="mvn:com.ibm.mq/com.ibm.mqjms/8.0.0.9"  REQUIRED_IF="(SERVER == 'WEBSPHERE')" />
+      <IMPORT NAME="WEBSPHERE MQ LIB" MODULE="com.ibm.mq.allclient-9.2.4.0.jar" MVN="mvn:com.ibm.mq/com.ibm.mq.allclient/9.2.4.0" REQUIRED_IF="(SERVER == 'WEBSPHERE')" />
+      <IMPORT NAME="JSON In Java " MODULE="json-20210307.jar" MVN="mvn:org.json/json/20210307" REQUIRED_IF="(SERVER == 'WEBSPHERE')" />
+      <IMPORT NAME="bcprov-jdk15on-1.69" MODULE="bcprov-jdk15on-1.69.jar" MVN="mvn:org.bouncycastle/bcprov-jdk15on/1.69" REQUIRED_IF="(SERVER == 'WEBSPHERE')" />
+      <IMPORT NAME="bcpkix-jdk15on-1.69" MODULE="bcpkix-jdk15on-1.69.jar" MVN="mvn:org.bouncycastle/bcpkix-jdk15on/1.69" REQUIRED_IF="(SERVER == 'WEBSPHERE')" />
+      <IMPORT NAME="bcutil-jdk15on-1.69" MODULE="bcutil-jdk15on-1.69.jar" MVN="mvn:org.bouncycastle/bcutil-jdk15on/1.69" REQUIRED_IF="(SERVER == 'WEBSPHERE')" />
 	  <IMPORT NAME="WEBSPHERE CONNECTOR" MODULE="websphere-connector-1_5.jar" MVN="mvn:org.talend.libraries/websphere-connector-1_5/6.0.0"  REQUIRED_IF="(SERVER == 'WEBSPHERE')" />
-	  <IMPORT NAME="TALENDMQRFH2" MODULE="talendMQRFH2-1.0.1-20190206.jar" MVN="mvn:org.talend/talendMQRFH2/1.0.1-20190206"  REQUIRED_IF="(SERVER == 'WEBSPHERE')" />
-	  <IMPORT NAME="Java Message Service" MODULE="jms.jar" MVN="mvn:org.talend.libraries/jms/6.0.0"  UrlPath="platform:/plugin/org.talend.libraries.esb.ext/lib/jms.jar" REQUIRED_IF="(SERVER == 'WEBSPHERE')" />
+	  <IMPORT NAME="TALENDMQRFH2" MODULE="talendMQRFH2-1.1.0-20220307.jar" MVN="mvn:org.talend/talendMQRFH2/1.1.0-20220307"  REQUIRED_IF="(SERVER == 'WEBSPHERE')" />
+	  <IMPORT NAME="Java Message Service" MODULE="javax.jms-api-2.0.1.jar" MVN="mvn:javax.jms/javax.jms-api/2.0.1" REQUIRED_IF="(SERVER == 'WEBSPHERE')" />
 	  
-	  <IMPORT NAME="SharedConnectionUtil" MODULE="talendMQConnectionUtil-1.0.1-20190215.jar" MVN="mvn:org.talend/talendMQConnectionUtil/1.0.1-20190215"   REQUIRED_IF="(USE_SHARED_CONNECTION == 'true')" />
+	  <IMPORT NAME="SharedConnectionUtil" MODULE="talendMQConnectionUtil-1.1.0-20220307.jar" MVN="mvn:org.talend/talendMQConnectionUtil/1.1.0-20220307"   REQUIRED_IF="(USE_SHARED_CONNECTION == 'true')" />
 	  
     </IMPORTS>
   </CODEGENERATION>

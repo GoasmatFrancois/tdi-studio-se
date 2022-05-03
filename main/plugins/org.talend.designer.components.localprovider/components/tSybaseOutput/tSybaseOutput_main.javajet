@@ -39,7 +39,17 @@ skeleton="../templates/db_output_bulk.skeleton"
     List<Map<String, String>> fieldOptions = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node, "__FIELD_OPTIONS__");
 
     String commitEvery = ElementParameterParser.getValue(node, "__COMMIT_EVERY__");
+    String dbVersion = ElementParameterParser.getValue(node, "__DB_VERSION__");
     String useExistingConn = ElementParameterParser.getValue(node,"__USE_EXISTING_CONNECTION__");
+    String connection = ElementParameterParser.getValue(node,"__CONNECTION__");
+    if("true".equals(useExistingConn)) {
+        List<? extends INode> nodes = node.getProcess().getGeneratingNodes();
+        for(INode targetNode : nodes){
+            if (targetNode.getUniqueName().equals(connection)) {
+              dbVersion = ElementParameterParser.getValue(targetNode, "__DB_VERSION__");
+            }
+        }
+    }
     boolean isEnableDebug = ("true").equals(ElementParameterParser.getValue(node,"__ENABLE_DEBUG_MODE__"));
 
     boolean useBatchSize = ("true").equals(ElementParameterParser.getValue(node,"__USE_BATCH_SIZE__"));
@@ -50,7 +60,7 @@ skeleton="../templates/db_output_bulk.skeleton"
 	String queryTimeOutInSeconds = ElementParameterParser.getValue(node,"__QUERY_TIMEOUT_IN_SECONDS__");
     
     //feature:2880
-    getManager(dbmsId, cid, node);
+    getManager(dbmsId, cid, node).setDbVersion(dbVersion);
     boolean whereSupportNull = ElementParameterParser.getValue(node, "__SUPPORT_NULL_WHERE__").equals("true");
 
     String incomingConnName = null;

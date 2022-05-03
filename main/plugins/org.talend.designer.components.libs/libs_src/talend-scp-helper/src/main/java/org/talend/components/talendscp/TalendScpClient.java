@@ -1,30 +1,31 @@
 package org.talend.components.talendscp;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermission;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-
 import org.apache.sshd.client.channel.ChannelExec;
-import org.apache.sshd.client.scp.AbstractScpClient;
-import org.apache.sshd.client.scp.DefaultScpClient;
-import org.apache.sshd.client.scp.DefaultScpStreamResolver;
-import org.apache.sshd.client.scp.ScpClient;
+import org.apache.sshd.scp.client.AbstractScpClient;
+import org.apache.sshd.scp.client.DefaultScpClient;
+import org.apache.sshd.scp.client.DefaultScpStreamResolver;
+import org.apache.sshd.scp.client.ScpClient;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.FactoryManager;
 import org.apache.sshd.common.file.FileSystemFactory;
 import org.apache.sshd.common.file.util.MockFileSystem;
 import org.apache.sshd.common.file.util.MockPath;
-import org.apache.sshd.common.scp.ScpFileOpener;
-import org.apache.sshd.common.scp.ScpHelper;
-import org.apache.sshd.common.scp.ScpTimestamp;
-import org.apache.sshd.common.scp.ScpTransferEventListener;
+import org.apache.sshd.scp.common.ScpFileOpener;
+import org.apache.sshd.scp.common.ScpHelper;
 import org.apache.sshd.common.util.ValidateUtils;
+import org.apache.sshd.scp.common.ScpTransferEventListener;
+import org.apache.sshd.scp.common.helpers.ScpTimestampCommandDetails;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
 
 
 /*
@@ -40,7 +41,8 @@ public class TalendScpClient extends DefaultScpClient {
     }
 
     @Override public void upload(InputStream local, String remote, long size, Collection<PosixFilePermission> perms,
-            ScpTimestamp time) throws IOException {
+                                 ScpTimestampCommandDetails time) throws IOException {
+
         int namePos = ValidateUtils.checkNotNullAndNotEmpty(remote, "No remote location specified").lastIndexOf('/');
         String name = (namePos < 0) ?
                 remote :

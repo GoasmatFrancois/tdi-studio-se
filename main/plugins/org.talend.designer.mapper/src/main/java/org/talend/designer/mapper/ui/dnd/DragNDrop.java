@@ -210,4 +210,11 @@ public class DragNDrop {
         dropTarget.addDropListener(targetListener);
     }
 
+    public static DropTarget addDropListener(Control listenerControl, TransferDropTargetListener listener) {
+        DropTarget dropTarget = new DropTarget(listenerControl, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
+        dropTarget.setTransfer(new Transfer[] { TableEntriesTransfer.getInstance() });
+        dropTarget.addDropListener(listener);
+        return dropTarget;
+    }
+
 }

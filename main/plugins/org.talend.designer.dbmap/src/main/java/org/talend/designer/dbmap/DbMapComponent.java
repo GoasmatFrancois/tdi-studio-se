@@ -172,7 +172,6 @@ public class DbMapComponent extends AbstractMapComponent {
             if (activeDelimitedIdentifiersEP == null) {
                 activeDelimitedIdentifiersEP = new ElementParameter(origNode);
                 activeDelimitedIdentifiersEP.setShow(false);
-                activeDelimitedIdentifiersEP.setFieldType(EParameterFieldType.TEXT);
                 activeDelimitedIdentifiersEP.setName(EParameterName.ACTIVE_DATABASE_DELIMITED_IDENTIFIERS.getName());
                 activeDelimitedIdentifiersEP.setCategory(EComponentCategory.TECHNICAL);
                 activeDelimitedIdentifiersEP.setNumRow(99);
@@ -180,6 +179,7 @@ public class DbMapComponent extends AbstractMapComponent {
                 List<IElementParameter> elemParams = (List<IElementParameter>) origNode.getElementParameters();
                 elemParams.add(activeDelimitedIdentifiersEP);
             }
+            activeDelimitedIdentifiersEP.setFieldType(EParameterFieldType.CHECK);
             activeDelimitedIdentifiersEP.setValue(getGenerationManager().isUseDelimitedIdentifiers());
 
             //

@@ -205,61 +205,79 @@ if(!hasDynamic) {
 %>
 //Set limit
 <%
-if(!("").equals(limit)) {
-  %>
-  int limit_<%=cid%> = <%=limit%>;               
-  <%
-}
+if(limit!=null && !("").equals(limit) && !("\"\"").equals(limit)) {
 %>
-//URL builder
-org.apache.http.client.methods.HttpGet <%=cid%>_httpget = new org.apache.http.client.methods.HttpGet(
-  <%=cid%>_URL
-  + "/api/now/table/"
-  + <%=tablename%>
-  + "?sysparm_exclude_reference_link=true&sysparm_limit="
-  + limit_<%=cid%>
-  + <%=cid%>_conditions
+  final int LIMIT_<%=cid%> = <%=limit%>;
 <%
-if(!hasDynamic) {
+} else {
 %>
-  + <%=cid%>_fields
+  final int LIMIT_<%=cid%> = 0;
 <%
-}
+} 
 %>
-  );
-//Header builder
-<%=cid%>_httpget.setHeader("Accept", "application/json");
-//activate Cookie header only if unreliable connection
-//<%=cid%>_httpget.setHeader("Cookie", "BIGipServerpool_sandbox=440453642.33598.0000; JSESSIONID=4100538B6BBF00B5568DF143FF815AF7; _ga=GA1.2.1976595674.1437483024; __CJ_tabs2_list_sys_user=%220%22; __CJ_g_startTime=%221437483102682%22; glide_user_route=glide.a1e7d977b734181b528e29363f053207");
-<%
-if(isLog4jEnabled){
-  %>
-  log.info("<%=cid%> - Executing method '" + <%=cid%>_httpget.getRequestLine().getMethod() + "'");
-  <%
-}
-%>
-//Get
-org.apache.http.client.methods.CloseableHttpResponse <%=cid%>_response = <%=cid%>_httpclient.execute(<%=cid%>_httpget);
-<%
-if(isLog4jEnabled){
-  %>
-  log.info("<%=cid%> - Execution code '" + <%=cid%>_response.getStatusLine().getStatusCode() + "'");
-  <%
-}
-%>
-try {
-  String <%=cid%>_responseBody;
-  org.json.JSONObject <%=cid%>_json;
-  org.json.JSONArray <%=cid%>_resultArray;
-  int <%=cid%>_responseLength, <%=cid%>_i;
-  org.json.JSONObject <%=cid%>_result = null;
-  try {
-    <%=cid%>_responseBody = org.apache.http.util.EntityUtils.toString(<%=cid%>_response.getEntity());
-    <%=cid%>_json = new org.json.JSONObject(<%=cid%>_responseBody);
 
-    if (<%=cid%>_response.getStatusLine().getStatusCode() == 200) {
-//Store result as JSON
-      <%=cid%>_resultArray = (org.json.JSONArray) <%=cid%>_json.get("result");
-      <%=cid%>_responseLength = <%=cid%>_resultArray.length();
-//Pass values to output
-      for (<%=cid%>_i = 0; <%=cid%>_i < <%=cid%>_responseLength; <%=cid%>_i++) {
+int offset_<%=cid%> = 0;
+int limit_<%=cid%> = LIMIT_<%=cid%> > 0 ? LIMIT_<%=cid%> : 1000;
+int total_<%=cid%> = 0;
+
+try {
+while(true) {
+    //URL builder
+    StringBuilder strb_<%=cid%> = new StringBuilder();
+    strb_<%=cid%>.append(<%=cid%>_URL).append("/api/now/table/").append(<%=tablename%>).append("?sysparm_exclude_reference_link=true")
+        .append("&sysparm_offset=").append(offset_<%=cid%>).append("&sysparm_limit=").append(limit_<%=cid%>).append(<%=cid%>_conditions);
+        
+    offset_<%=cid%> += limit_<%=cid%>;
+    
+    <%
+    if(!hasDynamic) {
+    %>
+    strb_<%=cid%>.append(<%=cid%>_fields);
+    <%
+    }
+    %>
+    
+    org.apache.http.client.methods.HttpGet <%=cid%>_httpget = new org.apache.http.client.methods.HttpGet(strb_<%=cid%>.toString());
+    
+    //Header builder
+    <%=cid%>_httpget.setHeader("Accept", "application/json");
+    //activate Cookie header only if unreliable connection
+    //<%=cid%>_httpget.setHeader("Cookie", "BIGipServerpool_sandbox=440453642.33598.0000; JSESSIONID=4100538B6BBF00B5568DF143FF815AF7; _ga=GA1.2.1976595674.1437483024; __CJ_tabs2_list_sys_user=%220%22; __CJ_g_startTime=%221437483102682%22; glide_user_route=glide.a1e7d977b734181b528e29363f053207");
+    <%
+    if(isLog4jEnabled){
+      %>
+      log.info("<%=cid%> - Executing method '" + <%=cid%>_httpget.getRequestLine().getMethod() + "'");
+      <%
+    }
+    %>
+    //Get
+    org.apache.http.client.methods.CloseableHttpResponse <%=cid%>_response = <%=cid%>_httpclient.execute(<%=cid%>_httpget);
+    <%
+    if(isLog4jEnabled){
+      %>
+      log.info("<%=cid%> - Execution code '" + <%=cid%>_response.getStatusLine().getStatusCode() + "'");
+      <%
+    }
+    %>
+    
+    org.apache.http.Header header_<%=cid%> = <%=cid%>_response.getFirstHeader("Link");
+    
+      String <%=cid%>_responseBody;
+      org.json.JSONObject <%=cid%>_json;
+      org.json.JSONArray <%=cid%>_resultArray;
+      int <%=cid%>_responseLength, <%=cid%>_i;
+      org.json.JSONObject <%=cid%>_result = null;
+      try {
+        <%=cid%>_responseBody = org.apache.http.util.EntityUtils.toString(<%=cid%>_response.getEntity());
+        <%=cid%>_json = new org.json.JSONObject(<%=cid%>_responseBody);
+    
+        if (<%=cid%>_response.getStatusLine().getStatusCode() == 200) {
+    //Store result as JSON
+          <%=cid%>_resultArray = (org.json.JSONArray) <%=cid%>_json.get("result");
+          <%=cid%>_responseLength = <%=cid%>_resultArray.length();
+          total_<%=cid%> += <%=cid%>_responseLength;
+          if(<%=cid%>_responseLength == 0) {//already read limit number records, so quit
+              break;
+          }
+    //Pass values to output
+          for (<%=cid%>_i = 0; <%=cid%>_i < <%=cid%>_responseLength; <%=cid%>_i++) {

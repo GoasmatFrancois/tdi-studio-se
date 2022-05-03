@@ -1,10 +1,11 @@
 package com.talend.compress.zip;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
 
-import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
 
 public class Unzip {
@@ -96,9 +97,10 @@ public class Unzip {
 					"Please enter the password and try again..");
 		}
 
-		ZipFile zipFile = new ZipFile(sourceZip);
+		ZipFile zipFile = new ZipFile(sourceZip,password.toCharArray());
+
 		if(encording != null){
-            zipFile.setFileNameCharset(encording);
+            zipFile.setCharset(Charset.forName(encording));
         }
 
 		if (checkArchive) {
@@ -106,10 +108,6 @@ public class Unzip {
 				throw new RuntimeException("The file " + sourceZip
 						+ " is corrupted, process terminated...");
 			}
-		}
-
-		if (zipFile.isEncrypted()) {
-			zipFile.setPassword(password);
 		}
 
 		List fileHeaderList = zipFile.getFileHeaders();
@@ -130,7 +128,7 @@ public class Unzip {
 				filename = filename.substring(filename.lastIndexOf('/') + 1);
 			}
 
-			zipFile.extractFile(fileHeader, targetDir, null, filename);
+			zipFile.extractFile(fileHeader, targetDir, filename);
 			util.addUnzippedFiles(targetDir, filename);
 		}
 	}
@@ -147,7 +145,7 @@ public class Unzip {
 		}
 
 		if (checkArchive) {
-			if (!org.talend.archive.IntegrityUtil.isEncryptedZipValid(file,
+			if (!IntegrityUtil.isEncryptedZipValid(file,
 					password)) {
 				throw new RuntimeException("The file " + sourceZip
 						+ " is corrupted, process terminated...");
@@ -158,7 +156,7 @@ public class Unzip {
 		try {
 			is = new java.io.FileInputStream(sourceZip);
 			is = new javax.crypto.CipherInputStream(is,
-					org.talend.archive.IntegrityUtil.createCipher(
+					IntegrityUtil.createCipher(
 							javax.crypto.Cipher.DECRYPT_MODE, password));
 			org.apache.commons.compress.archivers.zip.ZipArchiveInputStream input = new org.apache.commons.compress.archivers.zip.ZipArchiveInputStream(
 					new java.io.BufferedInputStream(is),Optional.ofNullable(encording).orElse("UTF8"));
@@ -184,7 +182,7 @@ public class Unzip {
 	// apache common compress impl
 	public void doUnzipWithoutDecryption() throws Exception {
 		if (checkArchive
-				&& !org.talend.archive.IntegrityUtil
+				&& !IntegrityUtil
 						.isZipValid(new java.io.File(sourceZip))) {
 			Thread.sleep(1000); // To make the process terminated after the
 								// System.out.println

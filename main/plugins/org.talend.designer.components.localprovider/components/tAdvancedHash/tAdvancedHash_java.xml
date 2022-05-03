@@ -51,7 +51,7 @@
         <IMPORT NAME="Jboss_Marshalling" MODULE="jboss-marshalling-2.0.12.Final.jar" MVN="mvn:org.jboss.marshalling/jboss-marshalling/2.0.12.Final" REQUIRED="true"/>
         <IMPORT NAME="Jboss_River" MODULE="jboss-marshalling-river-2.0.12.Final.jar" MVN="mvn:org.jboss.marshalling/jboss-marshalling-river/2.0.12.Final" REQUIRED="true"/>
         <IMPORT NAME="Trove" MODULE="trove.jar" MVN="mvn:org.talend.libraries/trove/6.0.0" REQUIRED="true"/>
-        <IMPORT NAME="Log4j" MODULE="log4j-1.2.17.jar" MVN="mvn:log4j/log4j/1.2.17" UrlPath="platform:/plugin/org.talend.libraries.apache/lib/log4j-1.2.17.jar" REQUIRED="true" BundleID=""/>
+        <IMPORT NAME="reload4j-1.2.19" MODULE="reload4j-1.2.19.jar" MVN="mvn:ch.qos.reload4j/reload4j/1.2.19" REQUIRED="true" BundleID=""/>
     </IMPORTS>
 </CODEGENERATION>
 

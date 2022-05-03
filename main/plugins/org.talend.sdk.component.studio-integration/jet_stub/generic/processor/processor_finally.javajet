@@ -44,5 +44,5 @@
             processor_<%=cid%>.stop();
         }
     } catch (final RuntimeException re) {
-        throw new TalendException(re, currentComponent, globalMap);
+        throw new TalendException(re, currentComponent, cLabel, globalMap);
     }

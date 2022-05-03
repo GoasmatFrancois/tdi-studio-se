@@ -46,10 +46,10 @@ imports="
 
 			com.microsoft.crm4.webserviceTest.CrmServiceStub service_<%=cid%> = new com.microsoft.crm4.webserviceTest.CrmServiceStub(<%=endpointURL%>);
 			org.apache.axis2.client.Options options_<%=cid%> = service_<%=cid%>._getServiceClient().getOptions();
-			org.apache.axis2.transport.http.HttpTransportProperties.Authenticator auth_<%=cid%> = new org.apache.axis2.transport.http.HttpTransportProperties.Authenticator();
+			org.apache.axis2.transport.http.impl.httpclient4.HttpTransportPropertiesImpl.Authenticator auth_<%=cid%> = new org.apache.axis2.transport.http.impl.httpclient4.HttpTransportPropertiesImpl.Authenticator();
 
 			List<String> authSchemes_<%=cid%> = new java.util.ArrayList<String>();
-			authSchemes_<%=cid%>.add(org.apache.axis2.transport.http.HttpTransportProperties.Authenticator.NTLM);
+			authSchemes_<%=cid%>.add(org.apache.axis2.transport.http.impl.httpclient4.HttpTransportPropertiesImpl.Authenticator.NTLM);
 			auth_<%=cid%> .setAuthSchemes(authSchemes_<%=cid%>);
 
             auth_<%=cid%> .setUsername(<%=username%>);

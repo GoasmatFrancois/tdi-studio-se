@@ -6,11 +6,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.FileSystem;
 
-import org.apache.sshd.common.scp.ScpException;
-import org.apache.sshd.common.scp.ScpFileOpener;
-import org.apache.sshd.common.scp.ScpHelper;
-import org.apache.sshd.common.scp.ScpTransferEventListener;
+import org.apache.sshd.scp.common.ScpException;
+import org.apache.sshd.scp.common.ScpFileOpener;
+import org.apache.sshd.scp.common.ScpHelper;
+import org.apache.sshd.scp.common.ScpTransferEventListener;
 import org.apache.sshd.common.session.Session;
+import org.apache.sshd.scp.common.helpers.ScpAckInfo;
 
 public class TalendScpHelper extends ScpHelper {
 
@@ -20,8 +21,9 @@ public class TalendScpHelper extends ScpHelper {
     }
 
     @Override
-    public int readAck(boolean canEof) throws IOException {
-        int c = in.read();
+    public ScpAckInfo readAck(boolean canEof) throws IOException {
+        final ScpAckInfo scpAckInfo = ScpAckInfo.readAck(this.in, this.csIn, canEof);
+        int c = scpAckInfo == null ? -1 : scpAckInfo.getStatusCode();
         switch (c) {
         case -1:
             if (log.isDebugEnabled()) {
@@ -31,12 +33,12 @@ public class TalendScpHelper extends ScpHelper {
                 throw new EOFException("readAck - EOF before ACK");
             }
             break;
-        case OK:
+        case ScpAckInfo.OK:
             if (log.isDebugEnabled()) {
                 log.debug("readAck({})[EOF={}] read OK", this, canEof);
             }
             break;
-        case WARNING: {
+        case ScpAckInfo.WARNING: {
             if (log.isDebugEnabled()) {
                 log.debug("readAck({})[EOF={}] read warning message", this, canEof);
             }
@@ -45,7 +47,7 @@ public class TalendScpHelper extends ScpHelper {
             log.warn("readAck({})[EOF={}] - Received warning: {}", this, canEof, line);
             throw new ScpException("received error: " + line, c);
         }
-        case ERROR: {
+        case ScpAckInfo.ERROR: {
             if (log.isDebugEnabled()) {
                 log.debug("readAck({})[EOF={}] read error message", this, canEof);
             }
@@ -58,6 +60,6 @@ public class TalendScpHelper extends ScpHelper {
         default:
             break;
         }
-        return c;
+        return scpAckInfo;
     }
 }

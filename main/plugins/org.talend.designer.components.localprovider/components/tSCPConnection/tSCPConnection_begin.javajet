@@ -28,8 +28,8 @@ imports="
 			log.info("<%=cid%> - Connection attempt to '" +hostname_<%=cid%> + "' on the port '"+<%=port%>+"' as '" + username_<%=cid%> + "'.");
 		<%}%>
 		org.apache.sshd.client.SshClient client_<%=cid%> = org.apache.sshd.client.SshClient.setUpDefaultClient();
-			client_<%=cid%>.getProperties().putIfAbsent(org.apache.sshd.common.FactoryManager.IDLE_TIMEOUT, 0L);
-			client_<%=cid%>.getProperties().putIfAbsent(org.apache.sshd.common.FactoryManager.NIO2_READ_TIMEOUT, 0L);
+		org.apache.sshd.core.CoreModuleProperties.IDLE_TIMEOUT.set(client_<%=cid%>, java.time.Duration.ZERO );
+        org.apache.sshd.core.CoreModuleProperties.NIO2_READ_TIMEOUT.set(client_<%=cid%>, java.time.Duration.ZERO );
 		<%
         if (("PUBLICKEY").equals(authMethod)) {
         %>
@@ -144,13 +144,12 @@ imports="
                     }else{
                         throw se_<%=cid%>;
                     }
-                }finally{
-                    session_<%=cid%>.close();
                 }
 
 
 
 		globalMap.put("conn_<%=cid%>",client_<%=cid%>);
+		globalMap.put("session_<%=cid%>",session_<%=cid%>);
 
 
 

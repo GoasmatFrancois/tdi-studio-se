@@ -1,11 +1,11 @@
 package org.talend.components.talendscp;
 
-import org.apache.sshd.client.scp.AbstractScpClientCreator;
-import org.apache.sshd.client.scp.ScpClient;
-import org.apache.sshd.client.scp.ScpClientCreator;
+import org.apache.sshd.scp.client.AbstractScpClientCreator;
+import org.apache.sshd.scp.client.ScpClient;
+import org.apache.sshd.scp.client.ScpClientCreator;
 import org.apache.sshd.client.session.ClientSession;
-import org.apache.sshd.common.scp.ScpFileOpener;
-import org.apache.sshd.common.scp.ScpTransferEventListener;
+import org.apache.sshd.scp.common.ScpFileOpener;
+import org.apache.sshd.scp.common.ScpTransferEventListener;
 
 public class TalendScpClientCreator extends AbstractScpClientCreator implements ScpClientCreator {
     public static final TalendScpClientCreator INSTANCE = new TalendScpClientCreator();

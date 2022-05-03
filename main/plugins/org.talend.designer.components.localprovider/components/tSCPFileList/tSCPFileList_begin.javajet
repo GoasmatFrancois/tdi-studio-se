@@ -23,13 +23,14 @@ imports="
     String password = ElementParameterParser.getValue(node,"__PASSWORD__");
     String passphrase = ElementParameterParser.getValue(node,"__PASSPHRASE__");
    	String commandSeparator = ElementParameterParser.getValue(node, "__COMMANDSEPARATOR__");        
-    List<Map<String, String>> filelist = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node, "__FILELIST__");       
+    List<Map<String, String>> filelist = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node, "__FILELIST__");
+    String connection = ElementParameterParser.getValue(node, "__CONNECTION__");
  %>
     /* Create a connection instance */
 	<%
 	String useExistingConn = ElementParameterParser.getValue(node, "__USE_EXISTING_CONNECTION__");
 	if(("true").equals(useExistingConn)){
-		String connection = ElementParameterParser.getValue(node, "__CONNECTION__");
+
 		INode connectionNode = NodeUtil.getNodeByUniqueName(node.getProcess(), connection);
 		    host = ElementParameterParser.getValue(connectionNode, "__HOST__");
             port = ElementParameterParser.getValue(connectionNode, "__PORT__");
@@ -56,8 +57,8 @@ imports="
         			log.info("<%=cid%> - Connection attempt to '" +hostname_<%=cid%> + "' on the port '"+<%=port%>+"' as '" + username_<%=cid%> + "'.");
         		<%}%>
         		org.apache.sshd.client.SshClient client_<%=cid%> = org.apache.sshd.client.SshClient.setUpDefaultClient();
-        			client_<%=cid%>.getProperties().putIfAbsent(org.apache.sshd.common.FactoryManager.IDLE_TIMEOUT, 0L);
-        			client_<%=cid%>.getProperties().putIfAbsent(org.apache.sshd.common.FactoryManager.NIO2_READ_TIMEOUT, 0L);
+		        org.apache.sshd.core.CoreModuleProperties.IDLE_TIMEOUT.set(client_<%=cid%>, java.time.Duration.ZERO );
+                org.apache.sshd.core.CoreModuleProperties.NIO2_READ_TIMEOUT.set(client_<%=cid%>, java.time.Duration.ZERO );
         		<%
                 if (("PUBLICKEY").equals(authMethod)) {
                 %>
@@ -141,39 +142,35 @@ imports="
 %>
 
                 client_<%=cid%>.start();
+                int port_<%=cid%> = Integer.parseInt(<%=port %>+"");
 
-        		/* Create a session */
 
-        		org.apache.sshd.client.session.ClientSession session_<%=cid%> = null;
+         		            /* open a session */
 
-                      /* Now connect */
 
-                <%if(isLog4jEnabled){%>
-        			log.info("<%=cid%> - Connection to '" +<%=host%> + "' has succeeded.");
-        		<%}%>
-
-        				/* open a session */
-
-                			<%if(isLog4jEnabled){%>
-                			    log.info("<%=cid%> - Authentication using a password.");
-                		    <%}%>
-
-                			session_<%=cid%> = client_<%=cid%>.connect(<%=user%>, <%=host%>, Integer.parseInt(<%=port %>+"")).verify().getClientSession();
-                	    try {
-                            session_<%=cid%>.auth().verify();
-                        }catch (org.apache.sshd.common.SshException se_<%=cid%>){
-                		    globalMap.put("<%=cid %>_EXIT_CODE",se_<%=cid%>.getDisconnectCode());
-                		<%
-                        if (("PUBLICKEY").equals(authMethod)) {
-                        %>
-                			java.nio.file.Files.write(privateKey_<%=cid%>,lines_<%=cid%>);
-                		<%}%>
-                            if(14 == se_<%=cid%>.getDisconnectCode()){
-                                throw new IllegalArgumentException("Authentication failed.");
-                            }else{
-                                throw se_<%=cid%>;
+                <%if(("true").equals(useExistingConn)){%>
+                                org.apache.sshd.client.session.ClientSession session_<%=cid%> =  (org.apache.sshd.client.session.ClientSession)globalMap.get("session_<%=connection%>");
+                <%}else{%>
+                                <%if(isLog4jEnabled){%>
+                                    log.info("<%=cid%> - Open up a session.");
+                                <%}%>
+                                org.apache.sshd.client.session.ClientSession session_<%=cid%> = client_<%=cid%>.connect(username_<%=cid%>, hostname_<%=cid%>, port_<%=cid%>).verify().getClientSession();
+                            try {
+                                session_<%=cid%>.auth().verify();
+                            }catch (org.apache.sshd.common.SshException se_<%=cid%>){
+                                globalMap.put("<%=cid %>_EXIT_CODE",se_<%=cid%>.getDisconnectCode());
+                            <%
+                            if (("PUBLICKEY").equals(authMethod)) {
+                            %>
+                                java.nio.file.Files.write(privateKey_<%=cid%>,lines_<%=cid%>);
+                            <%}%>
+                                if(14 == se_<%=cid%>.getDisconnectCode()){
+                                    throw new IllegalArgumentException("Authentication failed.");
+                                }else{
+                                    throw se_<%=cid%>;
+                                }
                             }
-                        }
+                <%}%>
 		//execute the command
 
 //initial the command
@@ -205,7 +202,6 @@ imports="
         		org.apache.sshd.client.channel.ClientChannelEvent.CLOSED,org.apache.sshd.client.channel.ClientChannelEvent.EXIT_STATUS), 0L);
         		exit_code_<%=cid%> = channel_<%=cid%>.getExitStatus();
         		channel_<%=cid%>.close();
-        		session_<%=cid%>.close();
         		<%if(isLog4jEnabled){%>
         			log.debug("Channel Events: "+ java.util.Arrays.toString(clientChannelEvents_<%=cid %>.toArray()));
         		<%}%>

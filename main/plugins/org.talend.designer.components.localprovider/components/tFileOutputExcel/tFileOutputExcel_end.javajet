@@ -184,6 +184,13 @@
 	        		for(int i=0;i<columns.size();i++){
 	        			IMetadataColumn column = columns.get(i);
                 		if(column.getTalendType().equals("id_Dynamic")){
+							if(sizeColumns > schemaOptNum) {
+
+							} else {
+	%>
+					excelDynamicUtil_<%=cid%>.autoDynamicColumnSize(xlsxTool_<%=cid%>);
+	<%
+							}
 							continue;
 						}
 	        			if(sizeColumns > schemaOptNum) {
@@ -212,6 +219,16 @@
 	                	for(int i=0;i<columns.size();i++){
 	                		IMetadataColumn column = columns.get(i);
 	                		if(column.getTalendType().equals("id_Dynamic")){
+								if(sizeColumns > schemaOptNum) {
+
+								} else {
+									Map<String,String> tmp = autoSizeList.get(i);
+									if(("true").equals(tmp.get("IS_AUTO_SIZE"))){
+	%>
+									excelDynamicUtil_<%=cid%>.autoDynamicColumnSize(xlsxTool_<%=cid%>);
+	<%
+									}
+								}
 								continue;
 							}
 	                		if(sizeColumns > schemaOptNum) {

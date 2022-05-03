@@ -64,6 +64,13 @@
     <%
         }
     %>
+
+<%
+	List<? extends INode> jobCatcherNodes = node.getProcess().getNodesOfType("tJobStructureCatcher");
+	boolean jobCatcherExists = jobCatcherNodes != null && !jobCatcherNodes.isEmpty();
+	INode jobCatcherNode = jobCatcherExists ? jobCatcherNodes.get(0) : null;
+	boolean enableLogStash = !Boolean.getBoolean("deactivate_extended_component_log") && jobCatcherExists;
+%>
     
 <% if(exitJVM) {%>
 	<%
@@ -73,9 +80,34 @@
 	<%
 	}
 	%>
+
+	<%
+	if(enableLogStash) {
+	%>
+		if(enableLogStash) {
+			<%=jobCatcherNode.getUniqueName() %>.addJobExceptionMessage(currentComponent, cLabel, <%=ElementParameterParser.getValue(node, "__MESSAGE__") %>, null);
+			<%=jobCatcherNode.getDesignSubjobStartNode().getUniqueName() %>Process(globalMap);
+		}
+	<%
+	}
+	%>
+	
 	System.exit(<%=code %>);
 <%}else{%>
 	if(true){	
-	    throw new TDieException();
+		TDieException e_<%=cid%> = new TDieException();
+
+		<%
+		if(enableLogStash) {
+		%>
+			if(enableLogStash) {
+				<%=jobCatcherNode.getUniqueName() %>.addJobExceptionMessage(currentComponent, cLabel, <%=ElementParameterParser.getValue(node, "__MESSAGE__") %>, e_<%=cid%>);
+				<%=jobCatcherNode.getDesignSubjobStartNode().getUniqueName() %>Process(globalMap);
+			}
+		<%
+		}
+		%>
+
+		throw e_<%=cid%>;
 	}
 <%}%>

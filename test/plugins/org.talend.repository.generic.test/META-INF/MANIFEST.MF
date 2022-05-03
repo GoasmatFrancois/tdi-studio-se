@@ -8,5 +8,6 @@ Fragment-Host: org.talend.repository.generic
 Require-Bundle: org.junit,
  org.talend.testutils,
  org.talend.components.common,
- org.talend.components.salesforce.definition
+ org.talend.components.salesforce.definition,
+ org.talend.components.jdbc.definition
 Import-Package: org.talend.designer.core.ui.editor.update.cmd

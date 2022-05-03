@@ -51,8 +51,14 @@
 			//do nothing as default
 			//for sybase jdbc in java 11, we have to call jdbcclazz.newInstance method
 		}
-		
+
 		public void newConnection(){
+		%>
+			conn_<%=cid%> = java.sql.DriverManager.getConnection(url_<%=cid %>,dbUser_<%=cid%>,dbPwd_<%=cid%>);
+		<%
+		}
+		
+		public void newConnection(INode node){
 		%>
 			conn_<%=cid%> = java.sql.DriverManager.getConnection(url_<%=cid %>,dbUser_<%=cid%>,dbPwd_<%=cid%>);
 		<%
@@ -104,7 +110,7 @@
         	        String dbPwd_<%=cid %> = decryptedPassword_<%=cid%>;
 	        
 					<%log4jCodeGenerateUtil.connect_begin();
-					newConnection();
+					newConnection(node);
 				} else {
 					log4jCodeGenerateUtil.connect_begin_noUser();
 				%>

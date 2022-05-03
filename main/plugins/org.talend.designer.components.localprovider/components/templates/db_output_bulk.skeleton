@@ -241,21 +241,6 @@ public class CLASS {
         public void setDynamic(boolean isDynamic) {
             this.isDynamic = isDynamic;
         }
-
-        public String getWrappedColumnName(String lProtectedChar, String rProtectedChar) {
-            String wrappedColumnName = getColumnName();
-            if (!isDynamic()) {
-                if (!lProtectedChar.equals("\\\"") && wrappedColumnName.startsWith("\"")) {
-                    wrappedColumnName = "\\" + wrappedColumnName;
-                }
-
-                if (!rProtectedChar.equals("\\\"") && wrappedColumnName.endsWith("\"") && !wrappedColumnName.endsWith("\\\"")) {
-                    wrappedColumnName = wrappedColumnName.substring(0, wrappedColumnName.lastIndexOf("\"")) + "\\" + "\"";
-                }
-            }
-
-            return lProtectedChar + wrappedColumnName + rProtectedChar;
-        }
     }
         
     public Column getColumn(IMetadataColumn column) {
@@ -276,8 +261,16 @@ public class CLASS {
         public void setNode(INode node) {
            this.node = node;
         }
+		
+        protected String dbVersion = ""; // TDI-47560 currently dbVersion is used by OracleManager and SybaseManager
+        public void setDbVersion(String dbVersion){ // has to be set manually
+            this.dbVersion = dbVersion;  
+        }
         
-        protected String cid;        
+        protected String cid;
+        
+        protected boolean autoWrapColumnName;
+        
         protected abstract String getDBMSId();
         protected abstract String getLProtectedChar();
         protected abstract String getRProtectedChar();        
@@ -285,32 +278,44 @@ public class CLASS {
         public Manager(String cid) {
             this.cid = cid;
         }
-      protected  String getLProtectedChar(String columName) {
-          return getLProtectedChar();
-      }
-      protected  String getRProtectedChar(String columName) {
-          return getRProtectedChar();        
-      }
-      protected boolean contaionsSpaces(String columnName) {
-          if (columnName != null) {
-              if (columnName.startsWith("\" + ") && columnName.endsWith(" + \"")) {
-                  return false;
-              }
+        
+        protected  String getLProtectedChar(String columName) {
+            return getLProtectedChar();
+        }
+        protected  String getRProtectedChar(String columName) {
+            return getRProtectedChar();        
+        }
+        
+        protected void setAutoWrapColumnName(boolean autoWrapColumnName) {
+            this.autoWrapColumnName = autoWrapColumnName;
+        }
+        
+        //if autoWrapColumnName, may not use lProtectedChar/rProtectedChar, as they will be empty char if not need to wrap without key words of current database
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return lProtectedChar + columnName + rProtectedChar;
+        }
+      
+        //wrap column name when white space or something appear
+        protected boolean contaionsSpaces(String columnName) {
+            if (columnName != null) {
+                if (columnName.startsWith("\" + ") && columnName.endsWith(" + \"")) {
+                    return false;
+                }
               
-              if (columnName.startsWith("\\\"") && columnName.endsWith("\\\"")) {
-              	  return false;
-              }
+                if (columnName.startsWith("\\\"") && columnName.endsWith("\\\"")) {
+                    return false;
+                }
               
-              if (columnName.contains(" ")) {
-                  return true;
-              }
-              // minus are also a problem
-              if (columnName.contains("-")) {
-                  return true;
-              }
-          }
-          return false;
-      }
+                if (columnName.contains(" ")) {
+                    return true;
+                }
+                // minus are also a problem
+                if (columnName.contains("-")) {
+                    return true;
+                }
+            }
+            return false;
+        }
 
         public String getSelectionSQL() {
             StringBuilder selectionSQL = new StringBuilder();
@@ -375,9 +380,9 @@ public class CLASS {
                         createSQL.append(" {TALEND_DYNAMIC_COLUMN} ").append(ending);
                     } else {
                         if (column.isKey()) {
-                            pkList.add(column.getWrappedColumnName(getLProtectedChar(column.getColumnName()), getRProtectedChar(column.getColumnName())));
+                            pkList.add(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())));
                         }
-                        createSQL.append(column.getWrappedColumnName(getLProtectedChar(column.getColumnName()), getRProtectedChar(column.getColumnName())) + " ");
+                        createSQL.append(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())) + " ");
                         String dataType = null;
                         if (column.getColumn().getType() == null || column.getColumn().getType().trim().equals("")) {
                             dataType = mappingType.getDefaultSelectedDbType(column.getColumn().getTalendType());
@@ -471,7 +476,7 @@ public class CLASS {
                         if(column.isAutoIncrement()) {
                             // move the autoincrease key column to the first index in the primary defination. Otherwise, it will throw exception
                             if(MYSQL.equalsIgnoreCase(getDBMSId()) || SINGLESTORE.equalsIgnoreCase(getDBMSId())) {
-                                String columnStr = column.getWrappedColumnName(getLProtectedChar(column.getColumnName()), getRProtectedChar(column.getColumnName()));
+                                String columnStr = getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName()));
                                 int index = pkList.indexOf(columnStr);
                                 if(index !=-1){
                                     for (int i=index;i>0;i--) {
@@ -1522,7 +1527,7 @@ public class CLASS {
             return dropTableSQL.toString();
         }
         
-         public String getCreateTableSQL(List<Column> columnList) {
+        public String getCreateTableSQL(List<Column> columnList) {
             MappingTypeRetriever mappingType = MetadataTalendType.getMappingTypeRetriever(getDBMSId());
             StringBuilder createSQL = new StringBuilder();
             createSQL.append("CREATE TABLE " + getLProtectedChar() + "\" + tableName_" + cid + " + \"" + getRProtectedChar() + "(");
@@ -1559,9 +1564,9 @@ public class CLASS {
                         createSQL.append(" {TALEND_DYNAMIC_COLUMN} ").append(ending);
                     } else {
                         if (column.isKey()) {
-                            pkList.add(getLProtectedChar( column.getColumnName() ) + column.getColumnName() + getRProtectedChar( column.getColumnName() ));
+                            pkList.add(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())));
                         }
-                        createSQL.append(getLProtectedChar( column.getColumnName() ) + column.getColumnName() + getRProtectedChar( column.getColumnName() ) + " ");
+                        createSQL.append(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())) + " ");
                         String dataType = null;
                         if (column.getColumn().getType() == null || column.getColumn().getType().trim().equals("")) {
                             dataType = mappingType.getDefaultSelectedDbType(column.getColumn().getTalendType());
@@ -2127,9 +2132,9 @@ public class CLASS {
                         createSQL.append(" {TALEND_DYNAMIC_COLUMN} ").append(ending);
                     } else {
                         if (column.isKey()) {
-                            pkList.add(getLProtectedChar( column.getColumnName() ) + column.getColumnName() + getRProtectedChar( column.getColumnName() ));
+                            pkList.add(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())));
                         }
-                        createSQL.append(getLProtectedChar( column.getColumnName() ) + column.getColumnName() + getRProtectedChar( column.getColumnName() ) + " ");
+                        createSQL.append(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())) + " ");
                         String dataType = null;
                         if (column.getColumn().getType() == null || column.getColumn().getType().trim().equals("")) {
                             dataType = mappingType.getDefaultSelectedDbType(column.getColumn().getTalendType());
@@ -2521,12 +2526,7 @@ public class CLASS {
                 return "\\\"";
             }
             return getRProtectedChar();
-        }  
-        private String dbVersion = "";
-        public void setDbVersion(String dbVersion){
-            this.dbVersion = dbVersion;  
         }
-        
         public String getUpdateBulkSQL(List<IMetadataColumn> columnList) {
             StringBuilder updateBulkSQL = new StringBuilder();
             StringBuilder updateSetStmt = new StringBuilder();
@@ -2967,8 +2967,6 @@ public class CLASS {
             MappingTypeRetriever mappingType = MetadataTalendType.getMappingTypeRetriever(getDBMSId());
             StringBuilder createSQL = new StringBuilder();
             
-        	
-        	
             createSQL.append(redshiftTracker +" \\n " + "CREATE TABLE " + getLProtectedChar() + "\" + tableName_" + cid + " + \"" + getRProtectedChar() + "(");
             List<String> pkList = new ArrayList<String>();
             int count = 0;
@@ -3003,9 +3001,9 @@ public class CLASS {
                         createSQL.append(" {TALEND_DYNAMIC_COLUMN} ").append(ending);
                     } else {
                         if (column.isKey()) {
-                            pkList.add(getLProtectedChar( column.getColumnName() ) + column.getColumnName() + getRProtectedChar( column.getColumnName() ));
+                            pkList.add(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())));
                         }
-                        createSQL.append(getLProtectedChar( column.getColumnName() ) + column.getColumnName() + getRProtectedChar( column.getColumnName() ) + " ");
+                        createSQL.append(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())) + " ");
                         String dataType = null;
                         if (column.getColumn().getType() == null || column.getColumn().getType().trim().equals("")) {
                             dataType = mappingType.getDefaultSelectedDbType(column.getColumn().getTalendType());
@@ -3351,7 +3349,7 @@ public class CLASS {
             } else {
                 return " null ";
             }
-        }        
+        }
         public String getUpdateBulkSQL(List<IMetadataColumn> columnList) {
             StringBuilder updateBulkSQL = new StringBuilder();
             StringBuilder updateSetStmt = new StringBuilder();
@@ -3478,9 +3476,13 @@ public class CLASS {
                 setStmt.append(prefix + cid + ".setNull(" + index + dynamic + ", java.sql.Types.TIMESTAMP);\r\n");
                 setStmt.append("}\r\n");
             } else if(typeToGenerate.equals("BigDecimal")){
-                if(column.getColumn().getPrecision()!=null && column.getColumn().getLength()!=null){
+                if(!"SYBSEIQ_16_SA".equals(dbVersion) && column.getColumn().getPrecision()!=null && column.getColumn().getLength()!=null){
                     setStmt.append("if(" + incomingConnName + "." + column.getName() + " != null) {\r\n");
-                    setStmt.append("((com.sybase.jdbc3.jdbc.SybPreparedStatement)"+prefix + cid + ").set" + typeToGenerate + "(" + index + dynamic + ", " + incomingConnName + "." + column.getName() +","+column.getColumn().getLength() +","+column.getColumn().getPrecision()+ ");\r\n");
+                    if("SYBSEIQ_16".equals(dbVersion)) {
+                        setStmt.append("((com.sybase.jdbc4.jdbc.SybPreparedStatement)"+prefix + cid + ").set" + typeToGenerate + "(" + index + dynamic + ", " + incomingConnName + "." + column.getName() +","+column.getColumn().getLength() +","+column.getColumn().getPrecision()+ ");\r\n");
+                    } else {
+                        setStmt.append("((com.sybase.jdbc3.jdbc.SybPreparedStatement)"+prefix + cid + ").set" + typeToGenerate + "(" + index + dynamic + ", " + incomingConnName + "." + column.getName() +","+column.getColumn().getLength() +","+column.getColumn().getPrecision()+ ");\r\n");
+                    }
                     setStmt.append("} else {\r\n");
                     setStmt.append(prefix + cid + ".set" + typeToGenerate + "(" + index + dynamic + ", " + incomingConnName + "." + column.getName() + ");\r\n");
                     setStmt.append("}\r\n");
@@ -3692,9 +3694,9 @@ public class CLASS {
                         createSQL.append(" {TALEND_DYNAMIC_COLUMN} ").append(ending);
                     } else {
                         if (column.isKey()) {
-                            pkList.add(getLProtectedChar( column.getColumnName() ) + column.getColumnName() + getRProtectedChar( column.getColumnName() ));
+                            pkList.add(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())));
                         }
-                        createSQL.append(getLProtectedChar( column.getColumnName() ) + column.getColumnName() + getRProtectedChar( column.getColumnName() ) + " ");
+                        createSQL.append(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())) + " ");
                         String dataType = null;
                         if (column.getColumn().getType() == null || column.getColumn().getType().trim().equals("")) {
                             dataType = mappingType.getDefaultSelectedDbType(column.getColumn().getTalendType());
@@ -4052,9 +4054,9 @@ public class CLASS {
                         createSQL.append(" {TALEND_DYNAMIC_COLUMN} ").append(ending);
                     } else {
                         if (column.isKey()) {
-                            pkList.add(getLProtectedChar( column.getColumnName() ) + column.getColumnName() + getRProtectedChar( column.getColumnName() ));
+                            pkList.add(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())));
                         }
-                        createSQL.append(getLProtectedChar( column.getColumnName() ) + column.getColumnName() + getRProtectedChar( column.getColumnName() ) + " ");
+                        createSQL.append(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())) + " ");
                         if(column.isAutoIncrement()) {
                             createSQL.append(getAutoIncrement(column.getStartValue(), column.getStep()));
                         } else {
@@ -4277,9 +4279,9 @@ public class CLASS {
                         createSQL.append(" {TALEND_DYNAMIC_COLUMN} ").append(ending);
                     } else {
                         if (column.isKey()) {
-                            pkList.add(getLProtectedChar( column.getColumnName() ) + column.getColumnName() + getRProtectedChar( column.getColumnName() ));
+                            pkList.add(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())));
                         }
-                        createSQL.append(getLProtectedChar( column.getColumnName() ) + column.getColumnName() + getRProtectedChar( column.getColumnName() ) + " ");
+                        createSQL.append(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())) + " ");
                         String dataType = null;
                         if (column.getColumn().getType() == null || column.getColumn().getType().trim().equals("")) {
                             dataType = mappingType.getDefaultSelectedDbType(column.getColumn().getTalendType());
@@ -4524,9 +4526,9 @@ public class CLASS {
                         createSQL.append(" {TALEND_DYNAMIC_COLUMN} ").append(ending);
                     } else {
                         if (column.isKey()) {
-                            pkList.add(getLProtectedChar( column.getColumnName() ) + column.getColumnName() + getRProtectedChar( column.getColumnName() ));
+                            pkList.add(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())));
                         }
-                        createSQL.append(getLProtectedChar( column.getColumnName() ) + column.getColumnName() + getRProtectedChar( column.getColumnName() ) + " ");
+                        createSQL.append(getWrappedColumnName(getLProtectedChar(column.getColumnName()), column.getColumnName(), getRProtectedChar(column.getColumnName())) + " ");
                         String dataType = null;
                         if (column.getColumn().getType() == null || column.getColumn().getType().trim().equals("")) {
                             dataType = mappingType.getDefaultSelectedDbType(column.getColumn().getTalendType());
@@ -4635,8 +4637,8 @@ public class CLASS {
           return "";
        }
     }
-	
-	public class DELTALAKEManager extends Manager {
+
+    public class DELTALAKEManager extends Manager {
        public DELTALAKEManager(String cid) {
           super(cid);
        }
@@ -4678,6 +4680,87 @@ public class CLASS {
     
     //////////////////////////////////////////////////////////////////////////////////
     //the managers which only work for tELTJDBCOutput component, we add it to ignore the text quote which wrap the schema, table or column name.
+    //getLProtectedChar()/getRProtectedChar() works for schema/table quote more
+    //getRProtectedChar(String columName) works for wrap column name
+    //ELT not support dynamic column, add and replace column
+    
+    static class ColumnHelper {
+        
+        static java.util.regex.Pattern basicNamePattern = java.util.regex.Pattern.compile("[\\p{Alpha}][\\p{Alnum}_]*");
+        
+        //lProtectedChar and rProtectedChar may be empty string or other char which is not double quote, do this for old job migration
+        static String wrapColumnNameByDoubleQuoteIfNecessary(boolean autoWrapColumnName, String lProtectedChar, String columnName, String rProtectedChar) {
+            //any head or tail invisible char is not valid column name
+            columnName = columnName.trim();
+            
+            boolean alreadyWrapped = columnName.startsWith("\\\"") && columnName.endsWith("\\\"");
+            
+            if(alreadyWrapped) {
+                return lProtectedChar + columnName + rProtectedChar;
+            }
+            
+            if(autoWrapColumnName) {
+                if(basicNamePattern.matcher(columnName).matches()) {
+                    return lProtectedChar + columnName + rProtectedChar;
+                }
+                
+                return "\\\"" + columnName + "\\\"";
+            }
+            
+            //if db column name starts with double quote or (ends with double quote and not escape that double quote), sure compiler issue, 
+            //so correct it here, so no migration issue as break already before
+            if (columnName.startsWith("\"")) {
+                columnName = "\\" + columnName;
+            }
+
+            if (columnName.endsWith("\"") && !columnName.endsWith("\\\"")) {
+                columnName = columnName.substring(0, columnName.lastIndexOf("\"")) + "\\\"";
+            }
+
+            return lProtectedChar + columnName + rProtectedChar;
+        }
+        
+        static String wrapColumnNameByGraveAccentIfNecessary(boolean autoWrapColumnName, String lProtectedChar, String columnName, String rProtectedChar) {
+            columnName = columnName.trim();
+            
+            boolean alreadyWrapped = columnName.startsWith("`") && columnName.endsWith("`");
+            
+            if(alreadyWrapped) {
+                return lProtectedChar + columnName + rProtectedChar;
+            }
+            
+            if(autoWrapColumnName) {
+                if(basicNamePattern.matcher(columnName).matches()) {
+                    return lProtectedChar + columnName + rProtectedChar;
+                }
+                
+                return "`" + columnName + "`";
+            }
+            
+            return lProtectedChar + columnName + rProtectedChar;
+        }
+        
+        static String wrapColumnNameByBracketIfNecessary(boolean autoWrapColumnName, String lProtectedChar, String columnName, String rProtectedChar) {
+            columnName = columnName.trim();
+            
+            boolean alreadyWrapped = columnName.startsWith("[") && columnName.endsWith("]");
+            
+            if(alreadyWrapped) {
+                return lProtectedChar + columnName + rProtectedChar;
+            }
+            
+            if(autoWrapColumnName) {
+                if(basicNamePattern.matcher(columnName).matches()) {
+                    return lProtectedChar + columnName + rProtectedChar;
+                }
+                
+                return "[" + columnName + "]";
+            }
+            
+            return lProtectedChar + columnName + rProtectedChar;
+        }
+        
+    }
     
     public class AS400ELTManager extends AS400Manager {
         public AS400ELTManager(String cid) {
@@ -4688,6 +4771,10 @@ public class CLASS {
         }
         protected String getRProtectedChar() {
             return "";
+        }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
         }
     }
     
@@ -4701,6 +4788,10 @@ public class CLASS {
         protected String getRProtectedChar() {
             return "";
         }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByBracketIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
+        }
     }
     
     public class DB2ELTManager extends DB2Manager {
@@ -4712,6 +4803,10 @@ public class CLASS {
         }
         protected String getRProtectedChar() {
             return "";
+        }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
         }
     }
     
@@ -4725,6 +4820,10 @@ public class CLASS {
         protected String getRProtectedChar() {
             return "";
         }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
+        }
     }
     
     public class HSQLDBELTManager extends HSQLDBManager {
@@ -4736,6 +4835,10 @@ public class CLASS {
         }
         protected String getRProtectedChar() {
             return "";
+        }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
         }
     }
     
@@ -4749,6 +4852,10 @@ public class CLASS {
         protected String getRProtectedChar() {
             return "";
         }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
+        }
     }
     
     public class InformixELTManager extends InformixManager {
@@ -4760,6 +4867,10 @@ public class CLASS {
         }
         protected String getRProtectedChar() {
             return "";
+        }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
         }
     }
     
@@ -4773,6 +4884,10 @@ public class CLASS {
         protected String getRProtectedChar() {
             return "";
         }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
+        }
     }
     
     public class VectorWiseELTManager extends VectorWiseManager {
@@ -4784,6 +4899,10 @@ public class CLASS {
         }
         protected String getRProtectedChar() {
             return "";
+        }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
         }
     }
     
@@ -4797,6 +4916,10 @@ public class CLASS {
         protected String getRProtectedChar() {
             return "";
         }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
+        }
     }
     
     public class JavaDBELTManager extends JavaDBManager {
@@ -4808,6 +4931,10 @@ public class CLASS {
         }
         protected String getRProtectedChar() {
             return "";
+        }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
         }
     }
     
@@ -4821,6 +4948,10 @@ public class CLASS {
         protected String getRProtectedChar() {
             return "";
         }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
+        }
     }
     
     public class MSSQLELTManager extends MSSQLManager {
@@ -4832,6 +4963,10 @@ public class CLASS {
         }
         protected String getRProtectedChar() {
             return "";
+        }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByBracketIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
         }
     }
     
@@ -4845,6 +4980,10 @@ public class CLASS {
         protected String getRProtectedChar() {
             return "";
         }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByGraveAccentIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
+        }
     }
     
     public class NetezzaELTManager extends NetezzaManager {
@@ -4856,6 +4995,10 @@ public class CLASS {
         }
         protected String getRProtectedChar() {
             return "";
+        }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
         }
     }
     
@@ -4869,6 +5012,10 @@ public class CLASS {
         protected String getRProtectedChar() {
             return "";
         }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
+        }
     }
     
     public class PostgrePlusELTManager extends PostgrePlusManager {
@@ -4880,6 +5027,10 @@ public class CLASS {
         }
         protected String getRProtectedChar() {
             return "";
+        }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
         }
     }
     
@@ -4893,6 +5044,10 @@ public class CLASS {
         protected String getRProtectedChar() {
             return "";
         }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
+        }
     }
     
     public class PostgreELTManager extends PostgreManager {
@@ -4904,6 +5059,10 @@ public class CLASS {
         }
         protected String getRProtectedChar() {
             return "";
+        }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
         }
     }
     
@@ -4917,6 +5076,10 @@ public class CLASS {
         protected String getRProtectedChar() {
             return "";
         }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
+        }
     }
     
     public class SQLiteELTManager extends SQLiteManager {
@@ -4928,6 +5091,10 @@ public class CLASS {
         }
         protected String getRProtectedChar() {
             return "";
+        }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
         }
     }
     
@@ -4941,6 +5108,10 @@ public class CLASS {
         protected String getRProtectedChar() {
             return "";
         }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
+        }
     }
     
     public class TeradataELTManager extends TeradataManager {
@@ -4952,6 +5123,10 @@ public class CLASS {
         }
         protected String getRProtectedChar() {
             return "";
+        }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
         }
     }
     
@@ -4965,6 +5140,10 @@ public class CLASS {
         protected String getRProtectedChar() {
             return "";
         }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
+        }
     }
     
     public class ExasolELTManager extends ExasolManager {
@@ -4976,6 +5155,10 @@ public class CLASS {
         }
         protected String getRProtectedChar() {
             return "";
+        }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
         }
     }
     
@@ -4989,11 +5172,19 @@ public class CLASS {
         protected String getRProtectedChar() {
             return "";
         }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
+        }
     }
 
     public class SnowflakeELTManager extends SnowflakeManager {
         public SnowflakeELTManager(String cid) {
             super(cid);
+        }
+        
+        protected String getWrappedColumnName(String lProtectedChar, String columnName, String rProtectedChar) {
+            return ColumnHelper.wrapColumnNameByDoubleQuoteIfNecessary(autoWrapColumnName, lProtectedChar, columnName, rProtectedChar);
         }
     }
     
@@ -5059,6 +5250,7 @@ public class CLASS {
                 ((UnDefinedManager)manager).setDBMSId(dbmsId);
             }
         }
+        
         managerMap.put(dbmsId + cid, manager);
         return manager;
     }
@@ -5146,9 +5338,13 @@ public class CLASS {
         return manager;
     }
     
-    public Manager getELTManager(String dbmsId, String cid, INode node) {
+    public Manager getELTManager(String dbmsId, String cid, INode node, boolean autoWrapColumnName) {
         Manager manager = getELTManager(dbmsId, cid);
+        
+        //the manager have status, no issue for multi thread or no multi thread case?
         manager.setNode(node);
+        manager.setAutoWrapColumnName(autoWrapColumnName);
+        
         return manager;
     }    
     

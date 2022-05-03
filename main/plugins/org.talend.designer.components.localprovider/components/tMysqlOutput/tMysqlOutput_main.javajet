@@ -1637,6 +1637,7 @@ globalMap.put("<%=cid%>_ERROR_MESSAGE",e.getMessage());
                 int processedCount_<%=cid%> = pstmt_<%=cid %>.executeUpdate();
                 replaceCount_<%=cid%> += processedCount_<%=cid%>;
                 rowsToCommitCount_<%=cid%> += processedCount_<%=cid%>;
+                nb_line_<%=cid%>++;
                 <%dbLog.data().replacing(null);%>
             } catch(java.lang.Exception e) {
 globalMap.put("<%=cid%>_ERROR_MESSAGE",e.getMessage());
@@ -1730,6 +1731,7 @@ globalMap.put("<%=cid%>_ERROR_MESSAGE",e.getMessage());
                 int processedCount_<%=cid%> = pstmt_<%=cid %>.executeUpdate();
                 count_on_duplicate_key_<%=cid%> += processedCount_<%=cid%>;
                 rowsToCommitCount_<%=cid%> += processedCount_<%=cid%>;
+                nb_line_<%=cid%>++;
                 <%dbLog.data().insertingOnDuplicateKeyUpdating(null);%>
             } catch(java.lang.Exception e) {
 globalMap.put("<%=cid%>_ERROR_MESSAGE",e.getMessage());

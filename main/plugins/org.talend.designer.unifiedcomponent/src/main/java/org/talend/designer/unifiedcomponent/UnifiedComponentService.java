@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.talend.core.GlobalServiceRegister;
+import org.talend.core.database.EDatabaseTypeName;
 import org.talend.core.model.components.IComponent;
 import org.talend.core.model.components.IComponentsFactory;
 import org.talend.core.model.components.IComponentsService;
@@ -129,6 +130,14 @@ public class UnifiedComponentService implements IUnifiedComponentService {
                     UnifiedObject unifiedObjectByDatabase = selectedDcomp.getUnifiedObjectByDatabase(database);
                     if (unifiedObjectByDatabase != null) {
                         return unifiedObjectByDatabase.getDisplayComponentName();
+                    } else if (EDatabaseTypeName.SYBASEASE.getDisplayName().equals(database)) {
+                        // sybase can be dbType as database
+                        // ref:org.talend.designer.unifiedcomponent.unifier.sybase.SybaseComponentsUnifier
+                        unifiedObjectByDatabase = selectedDcomp
+                                .getUnifiedObjectByDatabase(EDatabaseTypeName.SYBASEASE.getXmlName());
+                        if (unifiedObjectByDatabase != null) {
+                            return unifiedObjectByDatabase.getDisplayComponentName();
+                        }
                     }
                 }
 

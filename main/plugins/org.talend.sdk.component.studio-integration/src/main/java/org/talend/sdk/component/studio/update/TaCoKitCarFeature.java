@@ -14,9 +14,15 @@ package org.talend.sdk.component.studio.update;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -25,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -34,6 +41,8 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.equinox.p2.metadata.Version;
 import org.eclipse.m2e.core.MavenPlugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.runtime.service.ITaCoKitService;
 import org.talend.commons.utils.resource.FileExtensions;
@@ -57,10 +66,19 @@ import org.talend.updates.runtime.storage.IFeatureStorage;
 import org.talend.updates.runtime.utils.PathUtils;
 import org.talend.utils.io.FilesUtils;
 
+
 /**
  * DOC cmeng  class global comment. Detailled comment
  */
 public class TaCoKitCarFeature extends AbstractExtraFeature implements ITaCoKitCarFeature {
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(TaCoKitCarFeature.class);
+    
+    private static final String JAVAW_CMD_EXE = "javaw.exe";
+
+    private static final String JAVA_CMD_EXE = "java.exe";
+
+    private static final String JAVA_CMD = "java";
 
     private boolean autoReloadAfterInstalled = true;
 
@@ -158,25 +176,102 @@ public class TaCoKitCarFeature extends AbstractExtraFeature implements ITaCoKitC
         return status;
     }
     
-    private String getJavaCMD() {
-        String javacmd = "java";
+    public static String getJavaCMD() {
         String vm = System.getProperty(EclipseCommandLine.PROP_VM);
         if (!Platform.getOS().equals(Platform.OS_MACOSX) && !StringUtils.isBlank(vm)) {
-            if (!vm.endsWith(javacmd)) {
-                ExceptionHandler.logDebug("vm: " + vm);
-                if (vm.endsWith(".dll") || vm.endsWith(".so")) {
-                    vm = Paths.get(vm).getParent().getParent().getParent().resolve("bin").toFile().getAbsolutePath();
+            if (!vm.endsWith(JAVA_CMD) || !vm.endsWith(JAVA_CMD_EXE)) {
+                LOGGER.info("vm: " + vm);
+                String javaCMD = Platform.getOS().equals(Platform.OS_WIN32) ? JAVA_CMD_EXE : JAVA_CMD;
+                Finder f = new Finder(javaCMD);
+                Path p = Paths.get(vm);
+                if (Files.isSymbolicLink(p)) {
+                    try {
+                        p = p.toRealPath();
+                    } catch (IOException e) {
+                        LOGGER.error("toRealPath error", e);
+                    }
                 }
-
-                if (!vm.endsWith(File.separator)) {
-                    vm = vm + File.separator;
+                findJava(Paths.get(vm), f);
+                if (f.getJavaFile() != null) {
+                    return f.getJavaFile().getAbsolutePath();
                 }
-
-                vm = vm + javacmd;
             }
-            return vm;
         }
-        return javacmd;
+        return JAVA_CMD;
+    }
+    
+    public static File findJava(Path p, Finder f) {
+
+        if (p == null) {
+            return null;
+        }
+
+        try {
+            Files.walkFileTree(p, f);
+        } catch (IOException e) {
+            LOGGER.error("findJava error", e);
+        }
+        if (f.getJavaFile() == null && f.getLevel() < 4) {
+            f.setLevel(f.getLevel() + 1);
+            findJava(p.getParent(), f);
+        }
+
+        return f.getJavaFile();
+    }
+
+    public static class Finder extends SimpleFileVisitor<Path> {
+
+        private final String javaCMD;
+
+        private File javaFile;
+
+        private int level = 0;
+
+        Finder(String javaCMD) {
+            this.javaCMD = javaCMD;
+        }
+
+        /**
+         * @return the level
+         */
+        public int getLevel() {
+            return level;
+        }
+
+        /**
+         * @param level the level to set
+         */
+        public void setLevel(int level) {
+            this.level = level;
+        }
+
+        public File getJavaFile() {
+            return javaFile;
+        }
+
+        // Invoke the pattern matching
+        // method on each file.
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+            if (StringUtils.equals(javaCMD, FilenameUtils.getName(file.toFile().getName()))) {
+                javaFile = file.toFile();
+                return FileVisitResult.TERMINATE;
+            }
+            return FileVisitResult.CONTINUE;
+        }
+
+        // Invoke the pattern matching
+        // method on each directory.
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) {
+            LOGGER.error("vist " + file, exc);
+            return FileVisitResult.CONTINUE;
+        }
     }
 
     @SuppressWarnings("nls")
@@ -185,7 +280,7 @@ public class TaCoKitCarFeature extends AbstractExtraFeature implements ITaCoKitC
         String installationPath = URIUtil.toFile(URIUtil.toURI(Platform.getInstallLocation().getURL())).getAbsolutePath();
         String commandType = "studio-deploy";
         List<String> cmds = new ArrayList<String>();
-        String javaCMD = this.getJavaCMD();
+        String javaCMD = getJavaCMD();
         cmds.add(javaCMD);
         cmds.add("-jar");
         cmds.add(tckCarPath);

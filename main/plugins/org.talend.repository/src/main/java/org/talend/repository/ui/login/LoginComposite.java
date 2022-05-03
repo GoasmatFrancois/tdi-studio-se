@@ -2668,7 +2668,7 @@ public class LoginComposite extends Composite {
 
                 @Override
                 public void linkActivated(HyperlinkEvent e) {
-                    String url = "https://help.talend.com/pages/viewpage.action?pageId=14230347";
+                    String url = "https://document-link.us.cloud.talend.com/ts_ig_install-external-modules?version=80&lang=en&env=prd";
                     TalendBrowserLaunchHelper.openURL(url);
                 }
             });

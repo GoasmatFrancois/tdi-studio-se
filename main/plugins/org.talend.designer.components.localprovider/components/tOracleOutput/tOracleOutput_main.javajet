@@ -64,7 +64,7 @@ skeleton="../templates/db_output_bulk.skeleton"
     boolean createGeometryColumns = ("true").equals(ElementParameterParser.getValue(node,"__GEOMETRY_COLUMNS__"));
 
     //feature:2880
-    ((OracleManager)getManager(dbmsId, cid, node)).setDbVersion(dbVersion);
+    getManager(dbmsId, cid, node).setDbVersion(dbVersion);
     boolean whereSupportNull = ElementParameterParser.getValue(node, "__SUPPORT_NULL_WHERE__").equals("true");
     
     boolean containBlobFromOtherDB = "true".equals(ElementParameterParser.getValue(node, "__CONTAIN_BLOB_FROM_OTHER_DB__"));

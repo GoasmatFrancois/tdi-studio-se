@@ -200,6 +200,7 @@ for (IConnection iterateConn : iterateConnSet) { //1
 					
 					this.isRunning = true;
 					String currentComponent = "";
+					String cLabel = null;
 					java.util.Map<String, Object> resourceMap = new java.util.HashMap<String, Object>();
 					<%
 					if(NodeUtil.hasVirtualComponent(subTree.getNodes())){

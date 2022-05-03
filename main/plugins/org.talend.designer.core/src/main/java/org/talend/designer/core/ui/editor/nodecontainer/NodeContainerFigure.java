@@ -287,7 +287,7 @@ public class NodeContainerFigure extends Figure {
                     text += "\t- " + str + "<br>"; //$NON-NLS-1$ //$NON-NLS-2$
                 }
             }
-            htmlStatusHint.setText(text, true);
+            htmlStatusHint.setText(text);
             if (errorFigure.isVisible()) {
                 warningFigure.setToolTip(null);
                 errorFigure.setToolTip(htmlStatusHint);

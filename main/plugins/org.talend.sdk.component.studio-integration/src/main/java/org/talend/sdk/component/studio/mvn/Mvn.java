@@ -23,6 +23,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.jar.JarFile;
@@ -38,6 +40,27 @@ public final class Mvn {
         throw new AssertionError();
     }
 
+    private static final Set<String> SCOPES =
+            new HashSet<>(Arrays.asList("compile", "provided", "runtime", "test", "system"));
+
+    /**
+     * Transform a maven GAV coordinate to Studio's maven URI.
+     *
+     * GAV may have the following forms:
+     * - groupId:artifactId:version
+     * - groupId:artifactId:type:version
+     * - groupId:artifactId:type:version:scope
+     * - groupId:artifactId:type:classifier:version
+     * - groupId:artifactId:type:classifier:version:scope
+     *
+     * Maven URI should have one of the following forms:
+     * - mvn:groupId/artifactId/version/type
+     * - mvn:groupId/artifactId/version/type/classifier
+     *
+     * @param location GAV coordinate (groupId:artifactId:type[:classifier]:version:scope)
+     *
+     * @return maven URI (mvn:groupId/artifactId/version/type[/classifier])
+     */
     public static String locationToMvn(final String location) {
         if (location.startsWith("mvn:")) {
             return location;
@@ -47,21 +70,28 @@ public final class Mvn {
             throw new IllegalArgumentException("Invalid coordinate: " + location);
         }
         switch (segments.length) {
-        // support some optional values 3: g:a:v, 4: g:a:t:v
         case 3:
-            segments = new String[]{ segments[0], segments[1], "jar", segments[2], "compile" };
+            // g:a:v
+            segments = new String[]{ segments[0], segments[1], segments[2], "jar", "" };
             break;
-
         case 4:
-            segments = (location + ":compile").split(":");
+            // g:a:t:v
+            segments = new String[]{ segments[0], segments[1], segments[3], segments[2], "" };
             break;
-
+        case 5:
         default:
+            if (SCOPES.contains(segments[4])) {
+                // g:a:t:v:s
+                segments = new String[]{ segments[0], segments[1], segments[3], segments[2], "" };
+            } else {
+                // g:a:t:c:v(:s)
+                segments = new String[]{ segments[0], segments[1], segments[4], segments[2], segments[3] };
+            }
         }
         // mvn:group/artifact/version/type[/classifier]
-        final int classifierOffset = segments.length == 5 ? 0 : 1;
+        final String classifier = segments[4].isEmpty() ? "" : "/" + segments[4];
         return "mvn:" + MavenConstants.LOCAL_RESOLUTION_URL + '!' + segments[0] + "/" + segments[1] + "/"
-                + segments[3 + classifierOffset] + "/" + segments[2] + ((classifierOffset == 0) ? "" : "/" + segments[3]);
+                + segments[2] + "/" + segments[3] + classifier;
     }
 
     public static <T> T withDependencies(final File module, final String resource, final boolean acceptProvided,
@@ -88,7 +118,7 @@ public final class Mvn {
                     .filter(s -> !s.endsWith(":test"))
                     .filter(s -> (acceptProvided && s.endsWith(":provided"))
                             || (!acceptProvided && (s.endsWith("compile") || s.endsWith("runtime"))))
-                    .filter(s -> !s.contains("log4j"))
+                    .filter(s -> !s.contains("log4j") && !s.contains("reload4j"))
                     .map(Mvn::locationToMvn)
                     .collect(toSet());
         }

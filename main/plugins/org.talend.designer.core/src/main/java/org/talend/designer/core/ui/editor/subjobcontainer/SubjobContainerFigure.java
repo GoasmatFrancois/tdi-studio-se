@@ -78,7 +78,7 @@ public class SubjobContainerFigure extends Figure {
         outlineFigure = new RoundedRectangle();
         rectFig = new RoundedRectangle();
         titleFigure = new SimpleHtmlFigure();
-        titleFigure.setOpaque(true);
+        //titleFigure.setOpaque(true);
         collapseFigure = new SubjobCollapseFigure();
 
         collapseFigure.addActionListener(new ActionListener() {

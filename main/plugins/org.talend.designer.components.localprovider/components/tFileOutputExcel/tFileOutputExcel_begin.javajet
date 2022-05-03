@@ -312,6 +312,7 @@ if ((metadatas!=null)&&(metadatas.size()>0)) {
 				<%
 				}
 				%>
+				
 				public void writeValuesToExcelFile(Dynamic column, org.talend.ExcelTool xlsxTool){
 					dynamicColCount = column.getColumnCount();
 					for (int i = 0; i < dynamicColCount; i++) {
@@ -904,7 +905,21 @@ if(!hasDynamic && isIncludeHeader){
 <%
             		}
     			}
+    		} else {
+    			if(isAllColumnAutoSize){
+    			%>
+    				excelDynamicUtil_<%=cid%>.autoDynamicColumnSize(xlsxTool_<%=cid%>);
+    			<%
+    			} else if(autoSizeList.size() == columns.size()) {
+    				Map<String,String> tmp = autoSizeList.get(i);
+    				if(("true").equals(tmp.get("IS_AUTO_SIZE"))){
+    			%>
+    				excelDynamicUtil_<%=cid%>.autoDynamicColumnSize(xlsxTool_<%=cid%>);
+    			<%
+    				}
+    			}
     		}
+    		
     			if(!emptyMethod && ((i+1)%schemaOptNum==0)){
     				emptyMethod = true;
 %>

@@ -51,11 +51,6 @@
 					%>
 						excelDynamicUtil_<%=cid%>.writeValuesToExcelFile(<%=conn.getName() %>.<%=column.getLabel() %>, xlsxTool_<%=cid%>);
 						<%
-						if("true".equalsIgnoreCase(autColSizeMaping.get(column.getLabel()))){
-						%>
-							excelDynamicUtil_<%=cid%>.autoDynamicColumnSize(xlsxTool_<%=cid%>);
-						<%
-						}
 					}
 					if(!isPrimitive) {
     				%>

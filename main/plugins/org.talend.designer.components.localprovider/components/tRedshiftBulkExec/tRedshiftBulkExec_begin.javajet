@@ -33,6 +33,9 @@ skeleton="../templates/db_output_bulk.skeleton"
 	
 	boolean useExistingS3Connection = "true".equalsIgnoreCase(ElementParameterParser.getValue(node,"__USE_EXISTING_CONNECTION_S3__"));
 	String s3ConnectionCid = ElementParameterParser.getValue(node,"__CONNECTION_S3__");
+	int driveVersion = "DRIVER_V2".equals(ElementParameterParser.getValue(node, "__DRIVER_VERSION__"))? 2 : 1;
+    boolean useStringProperties = "true".equals(ElementParameterParser.getValue(node, "__USE_STRING_PROPERTIES__"));
+
 	INode current_node = node;
 	if(useExistingS3Connection){
 		current_node = NodeUtil.getNodeByUniqueName(node.getProcess(),s3ConnectionCid,true);
@@ -80,6 +83,7 @@ skeleton="../templates/db_output_bulk.skeleton"
         sbuilder_<%=cid%>.append("jdbc:redshift:");
 <%
         if ("SSO".equals(jdbcUrl)){
+
 %>
             sbuilder_<%=cid%>.append("iam:");
 <%
@@ -92,7 +96,7 @@ skeleton="../templates/db_output_bulk.skeleton"
                          .append("/")
                          .append(<%=dbName%>);
 <%
-        if(dbproperties != null && !"\"\"".equals(dbproperties) && !"".equals(dbproperties)) {
+        if(( useStringProperties || driveVersion == 1) && dbproperties != null && !"\"\"".equals(dbproperties) && !"".equals(dbproperties)) {
 %>
         sbuilder_<%=cid%>.append("?").append(<%=dbproperties%>);
 <%
@@ -110,8 +114,12 @@ skeleton="../templates/db_output_bulk.skeleton"
 		String dbUser_<%=cid %> = <%=userName%>;
 		String dbPwd_<%=cid %> = decryptedPass_<%=cid%>;
 <%      
+        if(driveVersion == 2 && !useStringProperties){
 
-		log4jCodeGenerateUtil.connect(node);
+		        log4jCodeGenerateUtil.connectWithProperties(node);
+		    } else {
+		        log4jCodeGenerateUtil.connect(node);
+		}
 	}
 	
 	String tableAction = ElementParameterParser.getValue(node,"__TABLE_ACTION__");

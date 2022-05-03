@@ -57,6 +57,18 @@
     </PARAMETER>
 
     <PARAMETER
+            NAME="DRIVER_VERSION"
+            FIELD="CLOSED_LIST"
+            NUM_ROW="5"
+            SHOW_IF="(USE_EXISTING_CONNECTION == 'false')"
+            REPOSITORY_VALUE="DRIVER_VERSION">
+      <ITEMS DEFAULT="DRIVER_V2">
+        <ITEM NAME="DRIVER_V1" VALUE="DRIVER_V1" />
+        <ITEM NAME="DRIVER_V2" VALUE="DRIVER_V2" />
+      </ITEMS>
+    </PARAMETER>
+
+    <PARAMETER
       NAME="CONNECTION"
       FIELD="COMPONENT_LIST"
       REQUIRED="true" FILTER="tRedshiftConnection"
@@ -68,7 +80,7 @@
     <PARAMETER
       NAME="HOST"
       FIELD="TEXT"
-      NUM_ROW="3"
+      NUM_ROW="8"
       REPOSITORY_VALUE="SERVER_NAME"
       REQUIRED="true"
       SHOW_IF="USE_EXISTING_CONNECTION == 'false'"
@@ -79,7 +91,7 @@
     <PARAMETER
       NAME="PORT"
       FIELD="TEXT"
-      NUM_ROW="3"
+      NUM_ROW="8"
       REPOSITORY_VALUE="PORT"
       REQUIRED="true"
       SHOW_IF="USE_EXISTING_CONNECTION == 'false'"
@@ -90,7 +102,7 @@
     <PARAMETER
       NAME="DBNAME"
       FIELD="TEXT"
-      NUM_ROW="4"
+      NUM_ROW="14"
       REPOSITORY_VALUE="SID"
       REQUIRED="true"
       SHOW_IF="USE_EXISTING_CONNECTION == 'false'"
@@ -101,7 +113,7 @@
     <PARAMETER
       NAME="TYPE"
       FIELD="TEXT"
-      NUM_ROW="3"
+      NUM_ROW="8"
       SHOW="false"
       REPOSITORY_VALUE="TYPE"
     >
@@ -111,7 +123,7 @@
     <PARAMETER
       NAME="SCHEMA_DB"
       FIELD="TEXT"
-      NUM_ROW="4"
+      NUM_ROW="14"
       REPOSITORY_VALUE="SCHEMA"
       SHOW_IF="USE_EXISTING_CONNECTION == 'false'"
     >
@@ -121,7 +133,7 @@
     <PARAMETER
       NAME="USER"
       FIELD="TEXT"
-      NUM_ROW="5"
+      NUM_ROW="15"
       REPOSITORY_VALUE="USERNAME"
       REQUIRED="true"
       SHOW_IF="(USE_EXISTING_CONNECTION == 'false') "
@@ -132,7 +144,7 @@
     <PARAMETER
       NAME="PASS"
       FIELD="PASSWORD"
-      NUM_ROW="5"
+      NUM_ROW="15"
       REPOSITORY_VALUE="PASSWORD"
       REQUIRED="true"
       SHOW_IF="(USE_EXISTING_CONNECTION == 'false') "
@@ -143,16 +155,37 @@
     <PARAMETER
 		NAME="PROPERTIES"
 		FIELD="TEXT"
-		NUM_ROW="6"
+		NUM_ROW="20"
+        SHOW_IF="(USE_EXISTING_CONNECTION == 'false') AND ((USE_STRING_PROPERTIES == 'true') AND (DRIVER_VERSION == 'DRIVER_V2')) OR (DRIVER_VERSION == 'DRIVER_V1')"
 		REPOSITORY_VALUE="PROPERTIES_STRING"
-		SHOW_IF="USE_EXISTING_CONNECTION == 'false'">
+        >
 		<DEFAULT>""</DEFAULT>
 	</PARAMETER>
 
     <PARAMETER
+            NAME="USE_STRING_PROPERTIES"
+            SHOW_IF="(USE_EXISTING_CONNECTION == 'false') AND (DRIVER_VERSION == 'DRIVER_V2')"
+            REPOSITORY_VALUE="USE_STRING_PROPERTIES"
+            FIELD="CHECK"
+            NUM_ROW="18"
+            REQUIRED="true"
+    >
+    </PARAMETER>
+
+    <PARAMETER NAME="ENTRY_PROPERTIES" FIELD="TABLE"
+               SHOW_IF="(USE_EXISTING_CONNECTION == 'false') AND (USE_STRING_PROPERTIES == 'false') AND (DRIVER_VERSION == 'DRIVER_V2')"
+               REPOSITORY_VALUE="ENTRY_PROPERTIES"
+               REQUIRED="false" NUM_ROW="20" NB_LINES="4">
+      <ITEMS>
+        <ITEM NAME="KEY" />
+        <ITEM NAME="VALUE" />
+      </ITEMS>
+    </PARAMETER>
+
+    <PARAMETER
       NAME="TABLE"
       FIELD="DBTABLE"
-      NUM_ROW="7"
+      NUM_ROW="25"
       REQUIRED="true"
     >
       <DEFAULT>""</DEFAULT>
@@ -161,7 +194,7 @@
     <PARAMETER
       NAME="TABLE_ACTION"
       FIELD="CLOSED_LIST"
-      NUM_ROW="8"
+      NUM_ROW="30"
       NOT_SHOW_IF="PARALLELIZE == 'true'"
     >
       <ITEMS DEFAULT="NONE">
@@ -177,7 +210,7 @@
     <PARAMETER
       NAME="DATA_ACTION"
       FIELD="CLOSED_LIST"
-      NUM_ROW="8"
+      NUM_ROW="30"
     >
       <ITEMS DEFAULT="INSERT">
         <ITEM NAME="INSERT"           VALUE="INSERT" />
@@ -191,7 +224,7 @@
     <PARAMETER
       NAME="SCHEMA_FLOW"
       FIELD="SCHEMA_TYPE"
-      NUM_ROW="9"
+      NUM_ROW="40"
     >
       <DEFAULT>""</DEFAULT>
     </PARAMETER>
@@ -200,7 +233,7 @@
       NAME="SCHEMA_REJECT"
       FIELD="SCHEMA_TYPE"
       REQUIRED="true"
-      NUM_ROW="9"
+      NUM_ROW="40"
       CONTEXT="REJECT"
       SHOW="true">
       <TABLE READONLY="true">
@@ -212,7 +245,7 @@
 	<PARAMETER
       NAME="DIE_ON_ERROR"
       FIELD="CHECK"
-      NUM_ROW="10"
+      NUM_ROW="50"
     >
       <DEFAULT>false</DEFAULT>
     </PARAMETER>
@@ -220,7 +253,7 @@
 	<PARAMETER
       NAME="MAPPING"
       FIELD="MAPPING_TYPE"
-      NUM_ROW="11"
+      NUM_ROW="60"
       SHOW="false"
     >
       <DEFAULT>redshift_id</DEFAULT>
@@ -388,8 +421,13 @@
 
    <CODEGENERATION>
      <IMPORTS>
-        <IMPORT NAME="Driver-Redshift" MODULE="redshift-jdbc42-no-awssdk-1.2.37.1061.jar" MVN="mvn:com.amazon.redshift/redshift-jdbc42-no-awssdk/1.2.37.1061" REQUIRED="true" />
+       <IMPORT NAME="Driver-Redshift-V2" MODULE="redshift-jdbc42-2.1.0.3.jar" MVN="mvn:com.amazon.redshift/redshift-jdbc42/2.1.0.3"
+               REQUIRED_IF="(DRIVER_VERSION == 'DRIVER_V2') AND (USE_EXISTING_CONNECTION == 'false')"/>
+       <IMPORT NAME="Driver-Redshift-V1" MODULE="redshift-jdbc42-no-awssdk-1.2.55.1083.jar" MVN="mvn:com.amazon.redshift/redshift-jdbc42-no-awssdk/1.2.55.1083"
+               REQUIRED_IF="(DRIVER_VERSION=='DRIVER_V1') and (USE_EXISTING_CONNECTION == 'false')" />
+        <IMPORT NAME="antlr4-runtime-4.8-1.jar" MODULE="antlr4-runtime-4.8-1.jar" MVN="mvn:org.antlr/antlr4-runtime/4.8-1"  REQUIRED="true" />
         <IMPORT NAME="aws-java-sdk-1.11.848.jar" MODULE="aws-java-sdk-1.11.848.jar" MVN="mvn:com.amazonaws/aws-java-sdk/1.11.848" REQUIRED_IF="(JDBC_URL == 'SSO') AND (USE_EXISTING_CONNECTION == 'false')" />
+        <IMPORT NAME="aws-java-sdk-redshift-internal-1.12.x.jar" MODULE="aws-java-sdk-redshift-internal-1.12.x.jar" MVN="mvn:com.amazonaws/aws-java-sdk-redshift-internal/1.12.x" REQUIRED_IF="(JDBC_URL == 'SSO') AND (USE_EXISTING_CONNECTION == 'false')" />
         <IMPORT NAME="commons-logging-1.2.jar" MODULE="commons-logging-1.2.jar" MVN="mvn:commons-logging/commons-logging/1.2" REQUIRED_IF="(JDBC_URL == 'SSO') AND (USE_EXISTING_CONNECTION == 'false')" />
         <IMPORT NAME="jackson-databind-2.11.4.jar" MODULE="jackson-databind-2.11.4.jar" MVN="mvn:com.fasterxml.jackson.core/jackson-databind/2.11.4" REQUIRED_IF="(JDBC_URL == 'SSO') AND (USE_EXISTING_CONNECTION == 'false')" />
         <IMPORT NAME="jackson-core-2.11.4.jar" MODULE="jackson-core-2.11.4.jar" MVN="mvn:com.fasterxml.jackson.core/jackson-core/2.11.4" REQUIRED_IF="(JDBC_URL == 'SSO') AND (USE_EXISTING_CONNECTION == 'false')" />

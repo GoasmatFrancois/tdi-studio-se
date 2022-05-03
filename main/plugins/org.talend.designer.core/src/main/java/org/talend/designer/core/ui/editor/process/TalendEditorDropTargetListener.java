@@ -27,7 +27,6 @@ import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.PolylineConnection;
 import org.eclipse.draw2d.Viewport;
 import org.eclipse.draw2d.geometry.Point;
-import org.eclipse.draw2d.geometry.Rectangle;
 import org.eclipse.draw2d.geometry.Translatable;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.gef.EditPart;
@@ -145,6 +144,9 @@ import org.talend.core.model.utils.IComponentName;
 import org.talend.core.model.utils.IDragAndDropServiceHandler;
 import org.talend.core.model.utils.SQLPatternUtils;
 import org.talend.core.model.utils.TalendTextUtils;
+import org.talend.core.pendo.PendoTrackDataUtil.TrackEvent;
+import org.talend.core.pendo.PendoTrackSender;
+import org.talend.core.pendo.properties.PendoUseAPIProperties;
 import org.talend.core.repository.RepositoryComponentManager;
 import org.talend.core.repository.RepositoryComponentSetting;
 import org.talend.core.repository.model.ProxyRepositoryFactory;
@@ -1097,6 +1099,17 @@ public class TalendEditorDropTargetListener extends TemplateTransferDropTargetLi
                 getAppropriateComponent(item, quickCreateInput, quickCreateOutput, store, type);
                 if (store.component != null) {
                     list.add(store);
+
+                    try {
+                        ERepositoryObjectType restType = ERepositoryObjectType.valueOf(ERepositoryObjectType.class,
+                                "METADATA_DATASERVICES_REST");
+                        if (restType != null && type.equals(restType)) {
+                            PendoTrackSender.getInstance().sendToPendo(TrackEvent.USE_API_DEF,
+                                    new PendoUseAPIProperties(store.component.getName()));
+                        }
+                    } catch (Exception e) {
+                        ExceptionHandler.process(e);
+                    }
                 } else {
                     MessageDialog.openInformation(editor.getEditorSite().getShell(),
                             Messages.getString("TalendEditorDropTargetListener.dngsupportdialog.title"), //$NON-NLS-1$

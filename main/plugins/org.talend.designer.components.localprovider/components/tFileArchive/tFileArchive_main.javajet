@@ -29,7 +29,8 @@
 
 	String zip64Mode = ElementParameterParser.getValue(node, "__ZIP64_MODE__");
 	String encryptMethod = ElementParameterParser.getValue(node, "__ENCRYPT_METHOD__");
-	String aesKeyStrength = ElementParameterParser.getValue(node, "__AES_KEY_STRENGTH__");
+	int aesKeyStrength = "AES_STRENGTH_256".equals(ElementParameterParser.getValue(node, "__AES_KEY_STRENGTH__"))?3:1;
+
 
 	String archiveFormat = ElementParameterParser.getValue(node, "__ARCHIVE_FORMAT__");
 	String sourceFile = ElementParameterParser.getValue(node, "__SOURCE_FILE__");
@@ -109,12 +110,17 @@
 	   if(!"JAVA_ENCRYPT".equals(encryptMethod)){
 	   %>
 	      zip_<%=cid%>.setUseZip4jEncryption(true);
-	      zip_<%=cid%>.setEncryptionMethod(net.lingala.zip4j.util.Zip4jConstants.<%=encryptMethod%>);
+
 	      <%
 		  if("ENC_METHOD_AES".equals(encryptMethod)){
 		  %>
-	         zip_<%=cid%>.setAesKeyStrength(net.lingala.zip4j.util.Zip4jConstants.<%=aesKeyStrength%>);
+		     zip_<%=cid%>.setEncryptionMethod("AES");
+	         zip_<%=cid%>.setAesKeyStrength(<%=aesKeyStrength%>);
 	      <%
+	   	  }else if("ENC_METHOD_STANDARD".equals(encryptMethod)){
+	   	  %>
+	   	  zip_<%=cid%>.setEncryptionMethod("ZIP_STANDARD");
+	   	  <%
 	   	  }
 	   	}else{
 	   	%>

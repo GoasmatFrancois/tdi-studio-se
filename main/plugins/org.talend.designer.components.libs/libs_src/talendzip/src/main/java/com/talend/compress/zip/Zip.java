@@ -5,16 +5,20 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
-import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.ZipParameters;
-import net.lingala.zip4j.util.Zip4jConstants;
 
+import net.lingala.zip4j.model.enums.AesKeyStrength;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipUtils;
@@ -26,7 +30,7 @@ public class Zip {
     private String targetZip;
     private boolean overwriteExistTargetZip = true;
     private boolean makeTargetDir = false;
-    private int compressLevel = 4;
+    private CompressionLevel compressLevel = CompressionLevel.MEDIUM_FAST;
     private String encoding = "ISO-8859-15";
 
     private boolean allFiles = true;
@@ -40,8 +44,8 @@ public class Zip {
 
     private boolean useZip4jEncryption = false;
 
-    private int encryptionMethod = Zip4jConstants.ENC_METHOD_AES;
-    private int aesKeyStrength = Zip4jConstants.AES_STRENGTH_256;
+    private EncryptionMethod encryptionMethod = EncryptionMethod.AES;
+    private AesKeyStrength aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256;
 
     private String archiveFormat = "zip";
     private boolean syncFlush;
@@ -79,19 +83,29 @@ public class Zip {
     }
 
     public void setCompressLevel(int compressLevel) {
-        this.compressLevel = compressLevel;
+        switch (compressLevel){
+            case 0:
+                this.compressLevel = CompressionLevel.NO_COMPRESSION;
+                break;
+            case 4:
+                this.compressLevel = CompressionLevel.MEDIUM_FAST;
+                break;
+            case 9:
+                this.compressLevel = CompressionLevel.ULTRA;
+                break;
+        }
     }
 
     public void setMakeTargetDir(boolean makeTargetDir) {
         this.makeTargetDir = makeTargetDir;
     }
 
-    public void setEncryptionMethod(int encryptionMethod) {
-        this.encryptionMethod = encryptionMethod;
+    public void setEncryptionMethod(String encryptionMethod) {
+        this.encryptionMethod = EncryptionMethod.valueOf(encryptionMethod);
     }
 
     public void setAesKeyStrength(int aesKeyStrength) {
-        this.aesKeyStrength = aesKeyStrength;
+        this.aesKeyStrength = AesKeyStrength.getAesKeyStrengthFromRawCode(aesKeyStrength);
     }
 
     public String getArchiveFormat() {
@@ -185,7 +199,7 @@ public class Zip {
         targetFile.setLastModified(System.currentTimeMillis());
         FileOutputStream fos = new FileOutputStream(targetFile);
         final boolean syncFlush = this.syncFlush;
-        final int compressLevel = this.compressLevel;
+        final int compressLevel = this.compressLevel.getLevel();
         TarArchiveOutputStream taos = new TarArchiveOutputStream(new GZIPOutputStream(fos, syncFlush) {
             {
             	this.def.setLevel(compressLevel);
@@ -222,7 +236,7 @@ public class Zip {
         OutputStream out = new FileOutputStream(tarFile);
         try {
             final boolean syncFlush = this.syncFlush;
-            final int compressLevel = this.compressLevel;
+            final int compressLevel = this.compressLevel.getLevel();
         	GZIPOutputStream gcos = new GZIPOutputStream(out, syncFlush) {
                 {
                 	this.def.setLevel(compressLevel);
@@ -247,7 +261,7 @@ public class Zip {
         try {
             output_stream = new java.io.FileOutputStream(targetZip);
             if (isEncrypted && !"".equals(password)) {
-                output_stream = new javax.crypto.CipherOutputStream(output_stream, org.talend.archive.IntegrityUtil.createCipher(
+                output_stream = new javax.crypto.CipherOutputStream(output_stream, IntegrityUtil.createCipher(
                         javax.crypto.Cipher.ENCRYPT_MODE, password));
             }
         } catch (Exception e) {
@@ -260,7 +274,7 @@ public class Zip {
         org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream out = null;
         out = new org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream(
                 new java.io.BufferedOutputStream(output_stream));
-        out.setLevel(compressLevel);
+        out.setLevel(compressLevel.getLevel());
         // set filename & comment encoding
         out.setEncoding(encoding);
         if ("ALWAYS".equals(zip64Mode)) {
@@ -302,26 +316,26 @@ public class Zip {
     // zip4j impl
     private void doZip2(final File source, final List<File> list) throws Exception {
 
-        ZipFile zipFile = new ZipFile(targetZip);
+        ZipFile zipFile = new ZipFile(targetZip,password.toCharArray());
         if ("UTF-8".equalsIgnoreCase(encoding)) {
             encoding = "UTF8";
         }
-        zipFile.setFileNameCharset(encoding);
+        zipFile.setCharset(Charset.forName(encoding));
 
         ZipParameters params = new ZipParameters();
-        params.setCompressionMethod(Zip4jConstants.COMP_DEFLATE);
+        params.setCompressionMethod(CompressionMethod.DEFLATE);
         params.setCompressionLevel(compressLevel);
 
         if (isEncrypted && !"".equals(password)) {
             params.setEncryptFiles(true);
             params.setEncryptionMethod(encryptionMethod);
-            if (Zip4jConstants.ENC_METHOD_AES == encryptionMethod) {
+            if (encryptionMethod == EncryptionMethod.AES) {
+
                 params.setAesKeyStrength(aesKeyStrength);
             }
-            params.setPassword(password);
         }
 
         params.setDefaultFolderPath(source.getAbsoluteFile().getPath());
-        zipFile.addFiles((ArrayList) list, params);
+        zipFile.addFiles(list, params);
     }
 }

@@ -1806,7 +1806,7 @@ public class EmfComponent extends AbstractBasicComponent {
             newParam.setRepositoryValue(componentType.getVersionRepositoryValueParameter());
             for (DistributionBean b : hadoopDistributions) {
                 IElementParameterDefaultValue defaultType = new ElementParameterDefaultValue();
-                final DistributionVersion defaultVersion = b.getDefaultVersion();
+                final DistributionVersion defaultVersion = "SPARK".equals(b.name) ? b.getVersion("SPARK_3_1_x", false) : b.getDefaultVersion();
                 if (defaultVersion == null || defaultVersion.version == null || defaultVersion.version.isEmpty()) {
                     defaultType.setDefaultValue(defaultValue);
                 } else {

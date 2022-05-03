@@ -3,19 +3,28 @@ imports="
     org.talend.core.model.process.INode 
     org.talend.core.model.process.ElementParameterParser 
     org.talend.designer.codegen.config.CodeGeneratorArgument
+    java.util.List
+    java.util.Map
 "
 %>
 <%@ include file="../templates/DB/HelpClass/HelpClass.javajet"%>
 <%
 	class ConnectionUtil extends DefaultConnectionUtil{
+
+				int driveVersion;
+    			Boolean useStringProperties ;
+    			String logLevel;
 	
 		public void createURL(INode node) {
 			super.createURL(node);
 
             boolean useLogFile= "true".equals(ElementParameterParser.getValue(node, "__USE_LOG_FILE__"));
-			String logLevel= ElementParameterParser.getValue(node, "__LOG_LEVEL__");
 			String logFile= ElementParameterParser.getValue(node, "__LOG_FILE__");
 			String jdbcUrl = ElementParameterParser.getValue(node, "__JDBC_URL__");
+			driveVersion = "DRIVER_V2".equals(ElementParameterParser.getValue(node, "__DRIVER_VERSION__"))? 2 : 1;
+            useStringProperties = "true".equals(ElementParameterParser.getValue(node, "__USE_STRING_PROPERTIES__"));
+            logLevel= ElementParameterParser.getValue(node, "__LOG_LEVEL__");
+
 			
 		if(!logLevel.equals("0")){	
 			if (useLogFile) {
@@ -43,11 +52,16 @@ imports="
                              .append(":")
                              .append(<%=dbport%>)
                              .append("/")
-                             .append(<%=dbname%>)
-                             .append("?loglevel=")
-                             .append(<%=logLevel%>);
+                             .append(<%=dbname%>);
+
+                             <%
+            if( useStringProperties || driveVersion == 1){
+                             %>
+
+                             sbuilder_<%=cid%>.append("?loglevel=").append(<%=logLevel%>);
 <%
-            if(dbproperties != null && !"\"\"".equals(dbproperties) && !"".equals(dbproperties)) {
+            }
+            if((driveVersion == 1 || useStringProperties) && dbproperties != null && !"\"\"".equals(dbproperties) && !"".equals(dbproperties)) {
 %>
                 sbuilder_<%=cid%>.append("&").append(<%=dbproperties%>);
 <%
@@ -56,6 +70,32 @@ imports="
             String url_<%=cid%> = sbuilder_<%=cid%>.toString();
 <%
 		}
+
+				public void createConnection(INode node) {
+				     if(driveVersion == 2 && !useStringProperties){
+				     List<Map<String, String>> properties = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node, "__ENTRY_PROPERTIES__");
+        %>
+
+                    java.util.Properties properties_<%=cid%> = new java.util.Properties();
+                                    properties_<%=cid%>.setProperty("user",dbUser_<%=cid%>);
+                                    properties_<%=cid%>.setProperty("password",dbPwd_<%=cid%>);
+                                    <%
+                                    for(Map<String, String> entry : properties){
+                                    %>
+                                    properties_<%=cid%>.setProperty(<%=entry.get("KEY")%>,<%=entry.get("VALUE")%>);
+                                    <%}%>
+                                    properties_<%=cid%>.setProperty("loglevel","<%=logLevel%>");
+
+                	conn_<%=cid%> = java.sql.DriverManager.getConnection(url_<%=cid%>,properties_<%=cid%>);
+        <%
+                     } else {
+
+        %>
+                     conn_<%=cid%> = java.sql.DriverManager.getConnection(url_<%=cid%>,dbUser_<%=cid%>,dbPwd_<%=cid%>);
+        <%
+
+                     }
+        		}
 		
 		public String getDirverClassName(INode node){
 			return "com.amazon.redshift.jdbc42.Driver";

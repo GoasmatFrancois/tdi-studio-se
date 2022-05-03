@@ -17,12 +17,19 @@ imports="
 
 	class DBInputBeginUtil extends DefaultDBInputUtil{
 
+				int driveVersion;
+       			Boolean useStringProperties ;
+       			String logLevel;
+
 		public void setURL(INode node) {
 			
 			boolean useLogFile= "true".equals(ElementParameterParser.getValue(node, "__USE_LOG_FILE__"));
 			String logLevel= ElementParameterParser.getValue(node, "__LOG_LEVEL__");
 			String logFile= ElementParameterParser.getValue(node, "__LOG_FILE__");
 			String jdbcUrl = ElementParameterParser.getValue(node, "__JDBC_URL__");
+			driveVersion = "DRIVER_V2".equals(ElementParameterParser.getValue(node, "__DRIVER_VERSION__"))? 2 : 1;
+            useStringProperties = "true".equals(ElementParameterParser.getValue(node, "__USE_STRING_PROPERTIES__"));
+            logLevel= ElementParameterParser.getValue(node, "__LOG_LEVEL__");
 			
 		if(!logLevel.equals("0")){	
 			if (useLogFile) {
@@ -51,11 +58,16 @@ imports="
                              .append(":")
                              .append(<%=dbport%>)
                              .append("/")
-                             .append(<%=dbname%>)
-                             .append("?loglevel=")
-                             .append(<%=logLevel%>);
+                             .append(<%=dbname%>);
+
+                             <%
+            if( useStringProperties || driveVersion == 1){
+                             %>
+
+                             sbuilder_<%=cid%>.append("?loglevel=").append(<%=logLevel%>);
 <%
-            if(dbproperties != null && !"\"\"".equals(dbproperties) && !"".equals(dbproperties)) {
+            }
+            if(( useStringProperties || driveVersion == 1) && dbproperties != null && !"\"\"".equals(dbproperties) && !"".equals(dbproperties)) {
 %>
                 sbuilder_<%=cid%>.append("&").append(<%=dbproperties%>);
 <%
@@ -64,19 +76,48 @@ imports="
             String url_<%=cid%> = sbuilder_<%=cid%>.toString();
 <%
 		}
+
+						public void createConnection(INode node) {
+									driveVersion = "DRIVER_V2".equals(ElementParameterParser.getValue(node, "__DRIVER_VERSION__"))? 2 : 1;
+                                    useStringProperties = "true".equals(ElementParameterParser.getValue(node, "__USE_STRING_PROPERTIES__"));
+						%>
+						//<%=driveVersion%>  useStringProperties: <%=useStringProperties%>
+						<%
+
+
+        				     if(driveVersion == 2 && !useStringProperties){
+        				     super.createConnection(node,2);//without connection
+        				     List<Map<String, String>> properties = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node, "__ENTRY_PROPERTIES__");
+                %>
+
+                            java.util.Properties properties_<%=cid%> = new java.util.Properties();
+                                            properties_<%=cid%>.setProperty("user",dbUser_<%=cid%>);
+                                            properties_<%=cid%>.setProperty("password",dbPwd_<%=cid%>);
+                                            <%
+                                            for(Map<String, String> entry : properties){
+                                            %>
+                                            properties_<%=cid%>.setProperty(<%=entry.get("KEY")%>,<%=entry.get("VALUE")%>);
+                                            <%}%>
+                                            properties_<%=cid%>.setProperty("loglevel","<%=logLevel%>");
+
+                        	conn_<%=cid%> = java.sql.DriverManager.getConnection(url_<%=cid%>,properties_<%=cid%>);
+
+
+                <%
+                log4jCodeGenerateUtil.connect_end();
+                             }else{
+                                 super.createConnection(node);
+                             }
+                             			String useCursor= ElementParameterParser.getValue(node, "__USE_CURSOR__");
+                             			if(("true").equals(useCursor)) {
+                             				log4jCodeGenerateUtil.autoCommit(node,false);
+                             			}
+                		}
 		
 		public String getDirverClassName(INode node){
 			return "com.amazon.redshift.jdbc42.Driver";
 		}
-		
-		public void createConnection(INode node) {
-			String jdbcUrl = ElementParameterParser.getValue(node, "__JDBC_URL__");
-			super.createConnection(node);
-			String useCursor= ElementParameterParser.getValue(node, "__USE_CURSOR__");
-			if(("true").equals(useCursor)) {
-				log4jCodeGenerateUtil.autoCommit(node,false);
-			}
-		}
+
 		
 		public void createStatement(INode node) {
 			super.createStatement(node);

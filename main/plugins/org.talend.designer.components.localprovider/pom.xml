@@ -20,9 +20,9 @@
 		<ftpProxy.dir>${project.basedir}/components/tFTPConnection</ftpProxy.dir>
 		<ftpProxy.version>3.6.1-talend-20200902</ftpProxy.version>
 		<talendMQRFH2.dir>${project.basedir}/components/tMomInput</talendMQRFH2.dir>
-		<talendMQRFH2.version>1.0.1-20190206</talendMQRFH2.version>
+		<talendMQRFH2.version>1.1.0-20220307</talendMQRFH2.version>
 		<talendMQConnectionUtil.dir>${project.basedir}/components/tMomConnection</talendMQConnectionUtil.dir>
-		<talendMQConnectionUtil.version>1.0.1-20190215</talendMQConnectionUtil.version>
+		<talendMQConnectionUtil.version>1.1.0-20220307</talendMQConnectionUtil.version>
 		<tldapinput.dir>${project.basedir}/components/tLDAPInput</tldapinput.dir>
 		<tproxy.dir>${project.basedir}/components/tSetProxy</tproxy.dir>
 		<tproxy.version>1.0.2</tproxy.version>
@@ -113,7 +113,7 @@
 								<artifactItem>
 									<groupId>org.talend.components</groupId>
 									<artifactId>talend-ws</artifactId>
-									<version>1.0.5-20210629</version>
+									<version>1.0.6-20220304</version>
 									<type>jar</type>
 									<overWrite>true</overWrite>
 									<outputDirectory>${webservicecore.dir}</outputDirectory>

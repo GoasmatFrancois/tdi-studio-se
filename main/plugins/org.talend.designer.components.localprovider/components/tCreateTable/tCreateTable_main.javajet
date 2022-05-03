@@ -1997,12 +1997,51 @@ class RedshiftManager extends Manager {
     public String getSpecificConnectionURL() {
         return "\"jdbc:redshift://\" + " + host + " + \":\" + " + port + " + \"/\" + " + dbName;
     }
+
+        public String getConnectionURL(){
+            boolean useStringProperties = "true".equals(ElementParameterParser.getValue(node, "__USE_STRING_PROPERTIES__"));
+            int driveVersion = "DRIVER_V2".equals(ElementParameterParser.getValue(node, "__REDSHIFT_DRIVER_VERSION__"))? 2 : 1;
+
+            if (getAdditionalParams() == null || "\"\"".equals(getAdditionalParams().trim()) || (!useStringProperties && driveVersion == 2) ){
+                return getSpecificConnectionURL();
+            }else{
+                return getSpecificConnectionURL() + " + \"" + getSeparator() + "\" + " + getAdditionalParams();
+            }
+        }
+
     public String getConnection() {
+        boolean useStringProperties = "true".equals(ElementParameterParser.getValue(node, "__USE_STRING_PROPERTIES__"));
+        int driveVersion = "DRIVER_V2".equals(ElementParameterParser.getValue(node, "__REDSHIFT_DRIVER_VERSION__"))? 2 : 1;
         StringBuilder javaCode = new StringBuilder();
         if(useExistingConnection) {
             javaCode.append(retrieveTable());
             javaCode.append("java.sql.Connection conn_" + cid + " = (java.sql.Connection)globalMap.get(\"conn_" + connection + "\");");
-        } else {
+        } else if(!useStringProperties && driveVersion == 2){
+
+                javaCode.append(retrieveTable());
+                javaCode.append("java.lang.Class jdbcclazz_" + cid + "= java.lang.Class.forName(\"" + getDriver()+ "\");\r\n");
+
+                newInstance(javaCode);
+
+                log4jCodeGenerateUtil.connect_begin();
+                String passwordFieldName = "__PASS__";
+                if(ElementParameterParser.canEncrypt(node, passwordFieldName)) {
+                	javaCode.append("final String decryptedPassword_" + cid + "= routines.system.PasswordEncryptUtil.decryptPassword(" + ElementParameterParser.getEncryptedValue(node, passwordFieldName) + ");\r\n");
+                } else {
+                	javaCode.append("final String decryptedPassword_" + cid + "= " + ElementParameterParser.getValue(node, passwordFieldName) + ";\r\n");
+                }
+                java.util.List<java.util.Map<String, String>> properties = (java.util.List<java.util.Map<String,String>>)ElementParameterParser.getObjectValue(node, "__ENTRY_PROPERTIES__");
+
+
+                javaCode.append("java.util.Properties atnParamsPrope_" + cid + "= new java.util.Properties();\r\n");
+                javaCode.append("atnParamsPrope_" + cid + ".put(\"user\",dbUser_"+ cid + ");\r\n");
+      			javaCode.append("atnParamsPrope_" + cid + ".put(\"password\",decryptedPassword_" + cid + ");\r\n");
+      		    for(java.util.Map<String, String> entry : properties){
+                      javaCode.append("atnParamsPrope_" + cid + ".put(" + entry.get("KEY") + "," + entry.get("VALUE") + ");\r\n");
+                }
+                javaCode.append("java.sql.Connection conn_" + cid + " = java.sql.DriverManager.getConnection(url_" + cid + ", atnParamsPrope_" + cid + ");\r\n");
+
+        }else {
             javaCode.append(super.getConnection());
         }
         return javaCode.toString();
@@ -2690,10 +2729,13 @@ if(columnList != null && columnList.size() > 0) {
                 <%
             }
         }
-        log4jCodeGenerateUtil.close_begin();
+        if(!useExistingConnection){
+            log4jCodeGenerateUtil.close_begin();
+            %>
+            <%=manager.closeConnection()%>
+            <%log4jCodeGenerateUtil.close_end();
+        }
         %>
-        <%=manager.closeConnection()%>
-        <%log4jCodeGenerateUtil.close_end();%>
         globalMap.put("<%=cid%>_QUERY", "<%=manager.getCreateTableSQL(columnList)%>");        
     } catch(java.lang.Exception e) {
         globalMap.put("<%=cid%>_ERROR_MESSAGE",e.getMessage());

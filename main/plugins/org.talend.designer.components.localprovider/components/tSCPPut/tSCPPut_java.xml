@@ -138,10 +138,10 @@
 
   <CODEGENERATION>
     <IMPORTS>
-      <IMPORT NAME="SSHD_CORE" MODULE="sshd-core-2.5.1.jar" MVN="mvn:org.apache.sshd/sshd-core/2.5.1" REQUIRED="true"/>
-      <IMPORT NAME="SSHD_COMMON" MODULE="sshd-common-2.5.1.jar" MVN="mvn:org.apache.sshd/sshd-common/2.5.1" REQUIRED="true"/>
-      <IMPORT NAME="SSHD_SCP" MODULE="sshd-scp-2.5.1.jar" MVN="mvn:org.apache.sshd/sshd-scp/2.5.1" REQUIRED="true"/>
-      <IMPORT NAME="talend-scp-helper" MODULE="talend-scp-helper-1.0.jar" MVN="mvn:org.talend.components/talend-scp-helper/1.0" REQUIRED="true"/>
+      <IMPORT NAME="SSHD_CORE" MODULE="sshd-core-2.8.0.jar" MVN="mvn:org.apache.sshd/sshd-core/2.8.0" REQUIRED="true"/>
+      <IMPORT NAME="SSHD_COMMON" MODULE="sshd-common-2.8.0.jar" MVN="mvn:org.apache.sshd/sshd-common/2.8.0" REQUIRED="true"/>
+      <IMPORT NAME="SSHD_SCP" MODULE="sshd-scp-2.8.0.jar" MVN="mvn:org.apache.sshd/sshd-scp/2.8.0" REQUIRED="true"/>
+      <IMPORT NAME="talend-scp-helper" MODULE="talend-scp-helper-1.1.jar" MVN="mvn:org.talend.components/talend-scp-helper/1.1" REQUIRED="true"/>
     </IMPORTS>
   </CODEGENERATION>
 

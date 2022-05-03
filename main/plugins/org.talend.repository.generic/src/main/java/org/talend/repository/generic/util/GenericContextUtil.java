@@ -346,7 +346,9 @@ public class GenericContextUtil {
                                         }
                                     }
                                 }
-                            }else {
+                            } else if (property.isFlag(Property.Flags.ENCRYPT)) {
+                                property.setValue(valueFromContext);
+                            } else {
                                 property.setValue(TalendQuoteUtils.removeQuotes(valueFromContext));
                             }
                         }

@@ -325,15 +325,17 @@
       <IMPORT NAME="JBOSS REMOTING" MODULE="jboss-remoting.jar" MVN="mvn:org.talend.libraries/jboss-remoting/6.0.0"  UrlPath="platform:/plugin/org.talend.libraries.jboss/lib/jboss-remoting.jar" REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'JBOSS')" />
       <IMPORT NAME="JBOSS MESSAGING CLIENT" MODULE="jboss-messaging-client.jar" MVN="mvn:org.talend.libraries/jboss-messaging-client/6.0.0"  UrlPath="platform:/plugin/org.talend.libraries.jboss/lib/jboss-messaging-client.jar" REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'JBOSS')" />
       <IMPORT NAME="JBOSS MQ LIB" MODULE="jbossall-client.jar" MVN="mvn:org.talend.libraries/jbossall-client/6.0.0"  UrlPath="platform:/plugin/org.talend.libraries.jboss/lib/jbossall-client.jar" REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'JBOSS')" />
-      <IMPORT NAME="LOG4J" MODULE="log4j-1.2.17.jar" MVN="mvn:log4j/log4j/1.2.17"  UrlPath="platform:/plugin/org.talend.libraries.apache/lib/log4j-1.2.17.jar" REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'JBOSS')" />
+      <IMPORT NAME="reload4j-1.2.19" MODULE="reload4j-1.2.19.jar" MVN="mvn:ch.qos.reload4j/reload4j/1.2.19" REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'JBOSS')" />
 
 	  <!-- Websphere MQ -->
-      <IMPORT NAME="WEBSPHERE MQ LIB" MODULE="com.ibm.mq-8.0.0.9.jar" MVN="mvn:com.ibm.mq/com.ibm.mq/8.0.0.9"  REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'WEBSPHERE')" />
-      <IMPORT NAME="WEBSPHERE MQ LIB" MODULE="com.ibm.mq.allclient-8.0.0.9.jar" MVN="mvn:com.ibm.mq/com.ibm.mq.allclient/8.0.0.9"  REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'WEBSPHERE')" />
-      <IMPORT NAME="WEBSPHERE JMS LIB" MODULE="com.ibm.mqjms-8.0.0.9.jar" MVN="mvn:com.ibm.mq/com.ibm.mqjms/8.0.0.9"  REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'WEBSPHERE')" />
+      <IMPORT NAME="WEBSPHERE MQ LIB" MODULE="com.ibm.mq.allclient-9.2.4.0.jar" MVN="mvn:com.ibm.mq/com.ibm.mq.allclient/9.2.4.0"  REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'WEBSPHERE')" />
+      <IMPORT NAME="JSON In Java " MODULE="json-20210307.jar" MVN="mvn:org.json/json/20210307" REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'WEBSPHERE')" />
+      <IMPORT NAME="bcprov-jdk15on-1.69" MODULE="bcprov-jdk15on-1.69.jar" MVN="mvn:org.bouncycastle/bcprov-jdk15on/1.69" REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'WEBSPHERE')" />
+      <IMPORT NAME="bcpkix-jdk15on-1.69" MODULE="bcpkix-jdk15on-1.69.jar" MVN="mvn:org.bouncycastle/bcpkix-jdk15on/1.69" REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'WEBSPHERE')" />
+      <IMPORT NAME="bcutil-jdk15on-1.69" MODULE="bcutil-jdk15on-1.69.jar" MVN="mvn:org.bouncycastle/bcutil-jdk15on/1.69" REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'WEBSPHERE')" />
       <IMPORT NAME="WEBSPHERE CONNECTOR" MODULE="websphere-connector-1_5.jar" MVN="mvn:org.talend.libraries/websphere-connector-1_5/6.0.0"  REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'WEBSPHERE')" />
-      <IMPORT NAME="TALENDMQRFH2" MODULE="talendMQRFH2-1.0.1-20190206.jar" MVN="mvn:org.talend/talendMQRFH2/1.0.1-20190206"  REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'WEBSPHERE')" />
-      <IMPORT NAME="Java Message Service" MODULE="jms.jar" MVN="mvn:org.talend.libraries/jms/6.0.0"  UrlPath="platform:/plugin/org.talend.libraries.esb.ext/lib/jms.jar" REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'WEBSPHERE')" />
+      <IMPORT NAME="TALENDMQRFH2" MODULE="talendMQRFH2-1.1.0-20220307.jar" MVN="mvn:org.talend/talendMQRFH2/1.1.0-20220307"  REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'WEBSPHERE')" />
+      <IMPORT NAME="Java Message Service" MODULE="javax.jms-api-2.0.1.jar" MVN="mvn:javax.jms/javax.jms-api/2.0.1" REQUIRED_IF="(USE_CONNECTION=='false' AND SERVER == 'WEBSPHERE')" />
     </IMPORTS>
   </CODEGENERATION>
 

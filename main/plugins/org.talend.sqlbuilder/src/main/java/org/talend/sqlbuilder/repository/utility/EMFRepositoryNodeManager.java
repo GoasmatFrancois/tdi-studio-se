@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Preferences;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
@@ -487,7 +488,6 @@ public final class EMFRepositoryNodeManager {
                 fromStr = s[1].split(" where ")[0]; //$NON-NLS-1$
                 whereStr = s[1].split(" where ")[1]; //$NON-NLS-1$
             }
-            String[] tables = fromStr.split(","); //$NON-NLS-1$
             String[] rel = whereStr.split(" and "); //$NON-NLS-1$
 
             for (String string : columns) {
@@ -498,16 +498,7 @@ public final class EMFRepositoryNodeManager {
                 }
                 columnsNames.add(string.trim());
             }
-            for (String string : tables) {
-                String tableName = string;
-                if (string.contains(".")) { //$NON-NLS-1$
-                    tableName = string.substring(string.indexOf(".") + 1).replaceAll("\\" + leftDbQuote, "") //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-                            .replaceAll("\\" + rightDbQuote, "");
-                }
-                if (!tableNames.contains(tableName.trim())) {
-                    tableNames.add(tableName);
-                }
-            }
+            tableNames.addAll(collectTableNames(fromStr, leftDbQuote, rightDbQuote));
             for (String element : rel) {
                 String[] strs = element.split("="); //$NON-NLS-1$
                 if (strs.length == 2) {
@@ -559,6 +550,27 @@ public final class EMFRepositoryNodeManager {
             }
         }
         return columns;
+    }
+
+    public List<String> collectTableNames(String sqlFromStr, String leftDbQuote, String rightDbQuote) {
+        List<String> tableNames = new ArrayList<String>();
+        if(StringUtils.isBlank(sqlFromStr)) {
+            return tableNames;
+        }
+        
+        String[] tables = sqlFromStr.split(","); //$NON-NLS-1$
+        for (String string : tables) {
+            String tableName = string;
+            if (string.contains(".")) { //$NON-NLS-1$
+                tableName = string.substring(string.lastIndexOf(".") + 1).replaceAll("\\" + leftDbQuote, "") //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                        .replaceAll("\\" + rightDbQuote, "");
+            }
+            if (!tableNames.contains(tableName.trim())) {
+                tableNames.add(tableName);
+            }
+        }
+        
+        return tableNames;
     }
 
     /**

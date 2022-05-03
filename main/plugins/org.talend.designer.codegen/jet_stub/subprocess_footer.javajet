@@ -67,7 +67,7 @@
 								this.errorCode = localErrorCode;
 							}
 						}					
-			            pool.setErrorThread(this, new TalendException(e, currentComponent, globalMap));
+			            pool.setErrorThread(this, new TalendException(e, currentComponent, cLabel, globalMap));
 			            //pool.setErrorThread(this,e);
 			            pool.stopAllThreads();
 					}finally{
@@ -117,7 +117,7 @@
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} catch (java.lang.Exception te) {
-			throw new TalendException(te, currentComponent, globalMap);
+			throw new TalendException(te, currentComponent, cLabel, globalMap);
 		}
 	<%
 	}else{
@@ -228,7 +228,7 @@
 				<%
 				}
 				%>
-				TalendException te = new TalendException(e, currentComponent, globalMap);
+				TalendException te = new TalendException(e, currentComponent, cLabel, globalMap);
 				<%
 				if(NodeUtil.hasVirtualComponent(subTree.getNodes())){
 				%>

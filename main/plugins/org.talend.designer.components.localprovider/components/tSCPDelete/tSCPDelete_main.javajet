@@ -31,30 +31,6 @@ imports="
 	}
 %>
     StringBuilder command_<%=cid %> = new StringBuilder("rm -f");
-    		/* open a session */
-
-    			<%if(isLog4jEnabled){%>
-    			    log.info("<%=cid%> - Open up a session.");
-    			    log.debug("<%=cid%> - execute the command: " + command_<%=cid %>.toString());
-    		    <%}%>
-
-    			session_<%=cid%> = client_<%=cid%>.connect(username_<%=cid%>, hostname_<%=cid%>, port_<%=cid%>).verify().getClientSession();
-    	    try {
-                session_<%=cid%>.auth().verify();
-            }catch (org.apache.sshd.common.SshException se_<%=cid%>){
-    		    globalMap.put("<%=cid %>_EXIT_CODE",se_<%=cid%>.getDisconnectCode());
-    		<%
-            if (("PUBLICKEY").equals(authMethod)) {
-            %>
-    			java.nio.file.Files.write(privateKey_<%=cid%>,lines_<%=cid%>);
-    		<%}%>
-                if(14 == se_<%=cid%>.getDisconnectCode()){
-                    throw new IllegalArgumentException("Authentication failed.");
-                }else{
-                    throw se_<%=cid%>;
-                }
-            }
-
 
 
 <%
@@ -85,7 +61,7 @@ imports="
                             		org.apache.sshd.client.channel.ClientChannelEvent.CLOSED,org.apache.sshd.client.channel.ClientChannelEvent.EXIT_STATUS), 0L);
                             		exit_code_<%=cid%> = channel_<%=cid%>.getExitStatus();
                             		channel_<%=cid%>.close();
-                            		session_<%=cid%>.close();
+
                             		<%if(isLog4jEnabled){%>
                             			log.debug("Channel Events: "+ java.util.Arrays.toString(clientChannelEvents_<%=cid %>.toArray()));
                             		<%}%>

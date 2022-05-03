@@ -352,7 +352,7 @@ globalMap.put("<%=virtualTargetCid%>_FINISH" + (listGroupby_<%=cid%>==null?"":li
 	IConnection nextMergeConn = NodeUtil.getNextMergeConnection(node);
 	if(nextMergeConn == null || nextMergeConn.getInputId()==1){
 	%>
-		txf_<%=cid%>.join();
+		future_<%=cid%>.get();
 		
 		if(txf_<%=cid%>.getLastException()!=null) {
 			currentComponent = txf_<%=cid%>.getCurrentComponent();

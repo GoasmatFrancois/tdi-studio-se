@@ -25,30 +25,9 @@ imports="
 		    authMethod = ElementParameterParser.getValue(connectionNode,"__AUTH_METHOD__");
 		}
 %>
-/* open a session */
 
-                        <%if(isLog4jEnabled){%>
-                            log.info("<%=cid%> - Open up a session.");
-                        <%}%>
-
-                        session_<%=cid%> = client_<%=cid%>.connect(username_<%=cid%>, hostname_<%=cid%>, port_<%=cid%>).verify().getClientSession();
-                    try {
-                        session_<%=cid%>.auth().verify();
-                    }catch (org.apache.sshd.common.SshException se_<%=cid%>){
-                        globalMap.put("<%=cid %>_EXIT_CODE",se_<%=cid%>.getDisconnectCode());
-                    <%
-                    if (("PUBLICKEY").equals(authMethod)) {
-                    %>
-                        java.nio.file.Files.write(privateKey_<%=cid%>,lines_<%=cid%>);
-                    <%}%>
-                        if(14 == se_<%=cid%>.getDisconnectCode()){
-                            throw new IllegalArgumentException("Authentication failed.");
-                        }else{
-                            throw se_<%=cid%>;
-                        }
-                    }
-                                       org.apache.sshd.client.scp.ScpClientCreator instance_<%=cid%> = org.talend.components.talendscp.TalendScpClientCreator.INSTANCE;
-                                       org.apache.sshd.client.scp.ScpClient scp_<%=cid%> = instance_<%=cid%>.createScpClient(session_<%=cid%>);
+                                       org.apache.sshd.scp.client.ScpClientCreator instance_<%=cid%> = org.talend.components.talendscp.TalendScpClientCreator.INSTANCE;
+                                       org.apache.sshd.scp.client.ScpClient scp_<%=cid%> = instance_<%=cid%>.createScpClient(session_<%=cid%>);
 
 
 	String[] sourceFileNames_<%=cid%> = new String[]{
@@ -166,7 +145,7 @@ globalMap.put("<%=cid%>_ERROR_MESSAGE",e_<%=cid%>.getMessage());
 		    					scp_<%=cid%>.download("\""+sourceFile_<%=cid %>+"\"",out_<%=cid %>);
 
 		    				} catch(java.lang.Exception e_<%=cid%>) {
-globalMap.put("<%=cid%>_ERROR_MESSAGE",e_<%=cid%>.getMessage());
+                            globalMap.put("<%=cid%>_ERROR_MESSAGE",e_<%=cid%>.getMessage());
 		                    	if(out_<%=cid %> != null){
 		                    		out_<%=cid %>.close();
 		                    	}
@@ -209,8 +188,4 @@ globalMap.put("<%=cid%>_ERROR_MESSAGE",e_<%=cid%>.getMessage());
 		globalMap.put("<%=cid %>_NB_FILE",nb_file_<%=cid%>);
 		globalMap.put("<%=cid %>_ERROR_MESSAGE",e_<%=cid%>.getMessage());
 		throw e_<%=cid%>;
-	}finally {
-		if(session_<%=cid%> != null) {
-			session_<%=cid%>.close();
-		}
 	}

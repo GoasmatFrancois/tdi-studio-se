@@ -637,46 +637,37 @@ if(dbtable != null && columnList != null){
 	if(("INSERT").equals(dataAction)){
 	%>
 
-<%if(!isLog4jEnabled){%>System.out.println("Inserting with : \n" + insertQuery_<%=cid %> + "\n");<%}%>
+System.out.println("Inserting with : \n" + insertQuery_<%=cid %> + "\n");
 <%log4jCodeGenerateUtil.logInfo(node,"info",cid+" - Executing SQL:\"+insertQuery_"+ cid +"+\"");%>
 nb_line_inserted_<%=cid%> = pstmt_<%=cid %>.executeUpdate();
 <%log4jCodeGenerateUtil.logInfo(node,"info",cid+" - Executed successfully.");%>
-<%if(!isLog4jEnabled){%>System.out.println("--> " + nb_line_inserted_<%=cid%> + " rows inserted. \n");<%}%>
+System.out.println("--> " + nb_line_inserted_<%=cid%> + " rows inserted. \n");
 
 	<%
 	}else if(("UPDATE").equals(dataAction)){
 
 	%>
-<%if(!isLog4jEnabled){%>System.out.println("Updating with : \n" + updateQuery_<%=cid %>.toString() +"\n");<%}%>
+System.out.println("Updating with : \n" + updateQuery_<%=cid %>.toString() +"\n");
 <%log4jCodeGenerateUtil.logInfo(node,"info",cid+" - Executing SQL:\"+updateQuery_"+ cid +"+\"");%>
 nb_line_updated_<%=cid%> = pstmt_<%=cid %>.executeUpdate();
 <%log4jCodeGenerateUtil.logInfo(node,"info",cid+" - Executed successfully.");%>
-	<%if(!isLog4jEnabled){%>System.out.println("--> " + nb_line_updated_<%=cid%> + " rows updated. \n");<%}%>
+System.out.println("--> " + nb_line_updated_<%=cid%> + " rows updated. \n");
 	<%
 	}else if (("DELETE").equals(dataAction)){
 		%>
-	<%if(!isLog4jEnabled){%>System.out.println("Deleting with : \n" + deleteQuery_<%=cid %>.toString() +"\n");<%}%>
+		System.out.println("Deleting with : \n" + deleteQuery_<%=cid %>.toString() +"\n");
 		<%log4jCodeGenerateUtil.logInfo(node,"info",cid+" - Executing SQL:\"+deleteQuery_"+ cid +"+\"");%>
 		nb_line_deleted_<%=cid%> = pstmt_<%=cid %>.executeUpdate();
 		<%log4jCodeGenerateUtil.logInfo(node,"info",cid+" - Executed successfully.");%>
-	<%if(!isLog4jEnabled){%>System.out.println("--> " + nb_line_deleted_<%=cid%> + " rows deleted. \n");<%}%>
+		System.out.println("--> " + nb_line_deleted_<%=cid%> + " rows deleted. \n");
 		<%
 	}else if (("MERGE").equals(dataAction)){
 	%>
-<%
-    if(!isLog4jEnabled){
-%>
         System.out.println("Merge with : \n" + mergeQuery_<%=cid %> +"\n");
-<%
-    } else {
-%>
-        log.info("<%=cid %> - Executing SQL: " + mergeQuery_<%=cid %>);
-<%
-    }
-%>
+        <%log4jCodeGenerateUtil.logInfo(node,"info",cid+" - Executing SQL:\"+mergeQuery_"+ cid +"+\"");%>
 	    nb_line_merged_<%=cid%> = pstmt_<%=cid %>.executeUpdate();
 		<%log4jCodeGenerateUtil.logInfo(node,"info",cid+" - Executed successfully.");%>
-	<%if(!isLog4jEnabled){%>System.out.println("--> " + nb_line_merged_<%=cid%> + " rows merged. \n");<%}%>
+		System.out.println("--> " + nb_line_merged_<%=cid%> + " rows merged. \n");
 	<%
 	}
   }

@@ -223,7 +223,7 @@
         public boolean useDatastax(INode node){
             String dbVersion = ElementParameterParser.getValue(node, "__DB_VERSION__");
             String apiType = ElementParameterParser.getValue(node, "__API_TYPE__");
-            return "CASSANDRA_2_2".equals(dbVersion) || "CASSANDRA_3_0".equals(dbVersion) || ("CASSANDRA_2_0_0".equals(dbVersion) && "DATASTAX".equals(apiType));
+            return "CASSANDRA_2_2".equals(dbVersion) || "CASSANDRA_3_0".equals(dbVersion) || "CASSANDRA_4_0".equals(dbVersion) || ("CASSANDRA_2_0_0".equals(dbVersion) && "DATASTAX".equals(apiType));
         }
     }
 %>
@@ -514,17 +514,35 @@
 				}
 				org.apache.logging.log4j.core.config.Configurator.setLevel(org.apache.logging.log4j.LogManager.getRootLogger().getName(), log.getLevel());
 				<%}%>
-    	    }
-        	log.info("TalendJob: '<%=codeGenArgument.getJobName()%>' - Start.");
-    	<%}%>
-    	
-    	<%
-    	INode jobCatcherNode = null;
+			}
+			log.info("TalendJob: '<%=codeGenArgument.getJobName()%>' - Start.");
+		<%}%>
+		
+		<%
+		INode jobCatcherNode = null;
+		
+		int threadPoolSize = 0;
+		boolean tRESTRequestLoopExists = false;
 		for (INode nodeInProcess : process.getGeneratingNodes()) {
 			String componentName = nodeInProcess.getComponent().getName();
-			if("tJobStructureCatcher".equals(componentName)) {
+
+			if(jobCatcherNode==null && "tJobStructureCatcher".equals(componentName)) {
 				jobCatcherNode = nodeInProcess;
-				break;
+				continue;
+			}
+
+			if(!nodeInProcess.isActivate()) continue;
+
+			if("tRESTRequestLoop".equals(componentName)) {
+				tRESTRequestLoopExists = true;
+				continue;
+			}
+			
+			if("tWriteXMLFieldOut".equals(componentName)) {
+				IConnection nextMergeConn = NodeUtil.getNextMergeConnection(nodeInProcess);
+				if(nextMergeConn == null || nextMergeConn.getInputId()==1){
+					threadPoolSize++;
+				}
 			}
 		}
 		
@@ -1200,6 +1218,26 @@ this.globalResumeTicket = true;//to run tPostJob
         }
 <%
     }
+
+    //tRESTRequest may appear in microservice, the code may be called before call submit(task) method, so can't shutdown it here
+    if(!tRESTRequestLoopExists && threadPoolSize>0) {
+%>
+        es.shutdown();
+        <%//shutdownNow should never be executed, only for safe%>
+        try {
+            if(!es.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS)) {
+                es.shutdownNow();
+                if(!es.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS)) {
+
+                }
+            }
+        } catch (java.lang.InterruptedException ie) {
+            es.shutdownNow();
+        } catch (java.lang.Exception e) {
+
+        }
+<%
+    }
 %>
 
 <% if (exist_tMOM) { %>
@@ -1369,16 +1407,27 @@ if (execStat) {
             Object obj_cluster;
             Object obj_conn;
 <%  for (INode cassandraDbNode : cassandraComponentsList) {
-        if((new API_selector()).useDatastax(cassandraDbNode)) { %>
-            obj_cluster = globalMap.remove("cluster_<%=cassandraDbNode.getUniqueName()%>");
-            obj_conn = globalMap.remove("connection_<%=cassandraDbNode.getUniqueName()%>");
-            if(obj_conn != null) {
-                ((com.datastax.driver.core.Session) obj_conn).close();
-            }
-            if(obj_cluster != null) {
-                ((com.datastax.driver.core.Cluster) obj_cluster).close();
-            }
-<%      } else { %>
+		String dbVersionCassandra = ElementParameterParser.getValue(cassandraDbNode, "__DB_VERSION__");
+        if((new API_selector()).useDatastax(cassandraDbNode)) { 
+			if("CASSANDRA_4_0".equals(dbVersionCassandra)) {
+			%>
+				obj_conn = globalMap.remove("connection_<%=cassandraDbNode.getUniqueName()%>");if(obj_conn != null) {
+					((com.datastax.oss.driver.api.core.CqlSession) obj_conn).close();
+				}
+			<%
+			} else {
+			%>
+				obj_cluster = globalMap.remove("cluster_<%=cassandraDbNode.getUniqueName()%>");
+				obj_conn = globalMap.remove("connection_<%=cassandraDbNode.getUniqueName()%>");
+				if(obj_conn != null) {
+					((com.datastax.driver.core.Session) obj_conn).close();
+				}
+				if(obj_cluster != null) {
+					((com.datastax.driver.core.Cluster) obj_cluster).close();
+				}
+			<%
+			}
+		} else { %>
             obj_conn = globalMap.remove("cluster_<%=cassandraDbNode.getUniqueName()%>");
             if(obj_conn!=null) {
                 ((me.prettyprint.hector.api.Cluster) obj_conn).getConnectionManager().shutdown();

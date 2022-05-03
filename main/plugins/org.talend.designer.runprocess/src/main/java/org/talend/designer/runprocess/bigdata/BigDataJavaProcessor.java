@@ -34,6 +34,7 @@ import org.talend.core.model.process.Element;
 import org.talend.core.model.process.IElementParameter;
 import org.talend.core.model.process.IProcess;
 import org.talend.core.model.process.IProcess2;
+import org.talend.core.model.process.JobInfo;
 import org.talend.core.model.process.ProcessUtils;
 import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Property;
@@ -300,6 +301,8 @@ public abstract class BigDataJavaProcessor extends MavenJavaProcessor implements
         if (isExport) {
             // In an export mode, we add the job jar which is located in the current working directory
             libJars.append("./" + makeupJobJarName()); //$NON-NLS-1$
+            // to fix TBD-13419, need to add the subjob jar name to the -libjars parameter
+            libJars.append(makeupSubjobJarNameStr4Export()); //$NON-NLS-1$
             if (!needAllLibJars) {
                 // to avoid issue TPSVC-4826
                 libJars.append(","); //$NON-NLS-1$
@@ -315,6 +318,8 @@ public abstract class BigDataJavaProcessor extends MavenJavaProcessor implements
 
             // ... and add the jar of the job itself also located in the target directory/
             libJars.append(getTalendJavaProject().getTargetFolder().getLocation().toPortableString() + "/" + makeupJobJarName()); //$NON-NLS-1$
+            // to fix TBD-13419, need to add the subjob jar name to the -libjars parameter
+            libJars.append(makeupSubjobJarNameStr4Local());
         }
         list.add(libJars.toString());
         return list;
@@ -349,7 +354,54 @@ public abstract class BigDataJavaProcessor extends MavenJavaProcessor implements
         return PomUtil.getArtifactFullPath(artifact) + ","; //$NON-NLS-1$
     }
 
-    protected String makeUpClassPathString() {
+    /**
+     * Makes up the subjob(s) jar name string for local, that should be like: 
+     * 1) "" (no subjobs) 
+     * 2) ",<project_folder>/poms/jobs/process/<subjob_name_versiono>/target/<subjob_name_versiono>.jar" (standard subjob) 
+     * 3) ",<project_folder>/poms/jobs/process_mr/<subjob_name_version>/target/<subjob_name_versiono>.jar" (spark subjob)
+     *
+     * @return
+     */
+    protected String makeupSubjobJarNameStr4Local() {
+        String subjobJarNameStr = ""; //$NON-NLS-1$
+        Set<JobInfo> jobInfos = getBuildChildrenJobs();
+        if (!jobInfos.isEmpty()) {
+            Iterator<JobInfo> it = jobInfos.iterator();
+            while (it.hasNext()) {
+                JobInfo jobInfo = it.next();
+                subjobJarNameStr += "," //$NON-NLS-1$
+                        + TalendJavaProjectManager.getTalendJobJavaProject(jobInfo.getProcessItem().getProperty())
+                                .getTargetFolder()
+                                .getLocation()
+                                .toPortableString()
+                        + "/" + jobInfo.getJobName().toLowerCase() + "_" + jobInfo.getJobVersion().replace(".", "_") //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+                        + ".jar"; //$NON-NLS-1$
+            }
+        }
+        return subjobJarNameStr;
+    }
+
+	/**
+	 * Makes up the subjob(s) jar name string for export, that should be like: 
+	 * 1) "" (no subjobs) 
+	 * 2) ",./subjob1_0_1.jar" (with subjobs) 
+	 *
+	 * @return
+	 */
+    protected String makeupSubjobJarNameStr4Export() {
+        String subjobJarNameStr = ""; //$NON-NLS-1$
+        Set<JobInfo> jobInfos = getBuildChildrenJobs();
+        if (!jobInfos.isEmpty()) {
+            Iterator<JobInfo> it = jobInfos.iterator();
+            while (it.hasNext()) {
+                JobInfo jobInfo = it.next();
+                subjobJarNameStr += ",./" + jobInfo.getJobName().toLowerCase() + "_" + jobInfo.getJobVersion().replace(".", "_") + ".jar"; //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+            }
+        }
+        return subjobJarNameStr;
+    }
+
+	protected String makeUpClassPathString() {
         StringBuffer sb = new StringBuffer();
         try {
             sb.append(getLibsClasspath());

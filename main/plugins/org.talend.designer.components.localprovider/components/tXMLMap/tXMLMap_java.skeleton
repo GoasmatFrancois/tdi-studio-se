@@ -141,13 +141,13 @@ public class CLASS {
 			
 			boolean end = false;
 			
-			if(expression.indexOf("[")>-1) {
-				strBuilder.append(expression.substring(0, expression.indexOf("[")));
-				currentExpression = currentExpression.substring(currentExpression.indexOf("["), currentExpression.length());
+			if(expression.contains("[")) {
+				strBuilder.append(expression, 0, expression.indexOf("["));
+				currentExpression = currentExpression.substring(currentExpression.indexOf("["));
 				
 				while(currentExpression.length()>0 && !end) {
 					expression = this.getXPathExpression(currentExpression);
-					currentExpression = currentExpression.substring(expression.length(), currentExpression.length());
+					currentExpression = currentExpression.substring(expression.length());
 					matcherFromDoc = expressionFromDoc.matcher(expression);
 					if(matcherFromDoc.matches()) {
 						tmpXpath = expression.substring(1, expression.length()-1);
@@ -167,9 +167,9 @@ public class CLASS {
 					} else {
 						strBuilder.append(expression);
 					}
-					if(currentExpression.indexOf("[")>-1) {
-						strBuilder.append(currentExpression.substring(0, currentExpression.indexOf("[")));
-						currentExpression = currentExpression.substring(currentExpression.indexOf("["), currentExpression.length());
+					if(currentExpression.contains("[")) {
+						strBuilder.append(currentExpression, 0, currentExpression.indexOf("["));
+						currentExpression = currentExpression.substring(currentExpression.indexOf("["));
 					} else {
 						strBuilder.append(currentExpression);
 						end=true;
@@ -191,13 +191,16 @@ public class CLASS {
 					count++;
 				}
 				if(']' == c) {
-					if(count==1) {
+					if(count--==1) {
 						break;
 					}
-					count--;
 				}
 			}
-			return currentExpression.substring(0,i+1);
+			if (count == 0) {
+				return currentExpression.substring(0, i + 1);
+			} else { //not a valid XPathExpression, returning as is
+				return currentExpression;
+			}
 		}
 		
 	}

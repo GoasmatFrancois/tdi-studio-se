@@ -131,7 +131,6 @@ import org.talend.designer.core.ui.editor.nodes.Node;
 import org.talend.designer.core.ui.editor.update.UpdateCheckResult;
 import org.talend.designer.core.ui.editor.update.UpdateManagerUtils;
 import org.talend.designer.core.ui.preferences.TalendDesignerPrefConstants;
-import org.talend.designer.core.utils.ConnectionUtil;
 import org.talend.designer.core.utils.SAPParametersUtils;
 import org.talend.metadata.managment.ui.utils.ConnectionContextHelper;
 import org.talend.repository.UpdateRepositoryUtils;
@@ -2189,6 +2188,24 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
                                                 sameValues = sameDriverForJDBC(node, repositoryConnection, oldList, objectValue);
                                                 if (!sameValues) {
                                                     break;
+                                                }
+                                            } else if ("ENTRY_PROPERTIES".equals(param.getName()) && oldList != null //$NON-NLS-1$
+                                                    && objectValue instanceof List) {
+                                                List objectList = (List) objectValue;
+                                                if (oldList.size() != objectList.size()) {
+                                                    sameValues = false;
+                                                } else {
+                                                    for (int i = 0; i < oldList.size(); i++) {
+                                                        Map<String, Object> oldMap = oldList.get(i);
+                                                        Map<String, Object> objectMap = (Map<String, Object>) objectList.get(i);
+                                                        if (oldMap.get("KEY").equals(objectMap.get("KEY")) //$NON-NLS-1$
+                                                                && oldMap.get("VALUE").equals(objectMap.get("VALUE"))) { //$NON-NLS-1$
+                                                            sameValues = true;
+                                                        } else {
+                                                            sameValues = false;
+                                                            break;
+                                                        }
+                                                    }
                                                 }
                                             }
                                         } else

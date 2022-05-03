@@ -107,7 +107,7 @@ public class TaCoKitGenericProvider implements IGenericProvider {
                 ComponentModel componentModel = new ComponentModel(index, detail, configTypes, imageDesc, reportPath, isCatcherAvailable);
                 components.add(componentModel);
 
-                if (ETaCoKitComponentType.input.equals(componentModel.getTaCoKitComponentType())) {
+                if (!createdConnectionFamiliySet.contains(index.getId().getFamily())) {
                     ActionList actionList = Lookups.taCoKitCache().getActionList(index.getFamilyDisplayName());
                     IComponent connectionModel = createConnectionComponent(index, detail, configTypes, reportPath, isCatcherAvailable, createdConnectionFamiliySet, actionList);
                     if (connectionModel != null) {

@@ -14,6 +14,7 @@ package org.talend.designer.dbmap.managers;
 
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +29,14 @@ import org.talend.core.context.RepositoryContext;
 import org.talend.core.model.components.ComponentCategory;
 import org.talend.core.model.components.IComponent;
 import org.talend.core.model.process.EConnectionType;
+import org.talend.core.model.process.ElementParameterParser;
 import org.talend.core.model.process.IConnection;
+import org.talend.core.model.process.IElementParameter;
 import org.talend.core.model.process.INodeConnector;
 import org.talend.core.model.properties.PropertiesFactory;
 import org.talend.core.model.properties.Property;
 import org.talend.core.ui.component.ComponentsFactoryProvider;
+import org.talend.designer.core.model.components.EParameterName;
 import org.talend.designer.core.model.components.ElementParameter;
 import org.talend.designer.core.model.components.NodeConnector;
 import org.talend.designer.core.ui.editor.connections.Connection;
@@ -214,5 +218,40 @@ public class MapperManagerTest {
         property.setAuthor(((RepositoryContext) CorePlugin.getContext().getProperty(Context.REPOSITORY_CONTEXT_KEY)).getUser());
         property.setVersion(VersionUtils.DEFAULT_VERSION);
         return property;
+    }
+
+    @Test
+    public void testRestoreMapperModelFromInternalData() {
+        dbMapComponent.initialize();
+        dbMapComponent.setOriginalNode(targetNode);
+        dbMapComponent.restoreMapperModelFromInternalData();
+        String activeDelimited = ElementParameterParser.getValue(targetNode, "__ACTIVE_DATABASE_DELIMITED_IDENTIFIERS__");
+        String useAlias = ElementParameterParser.getValue(targetNode, "__USE_ALIAS_IN_OUTPUT_TABLE__");
+        assertTrue("false".equals(activeDelimited));
+        assertTrue("false".equals(useAlias));
+
+        IElementParameter activeDelimitedParam = targetNode
+                .getElementParameter(EParameterName.ACTIVE_DATABASE_DELIMITED_IDENTIFIERS.getName());
+        IElementParameter useAliasParam = targetNode.getElementParameter(EParameterName.USE_ALIAS_IN_OUTPUT_TABLE.getName());
+        activeDelimitedParam.setValue("true");
+        useAliasParam.setValue("true");
+        activeDelimited = ElementParameterParser.getValue(targetNode, "__ACTIVE_DATABASE_DELIMITED_IDENTIFIERS__");
+        useAlias = ElementParameterParser.getValue(targetNode, "__USE_ALIAS_IN_OUTPUT_TABLE__");
+        assertTrue("true".equals(activeDelimited));
+        assertTrue("true".equals(useAlias));
+
+        activeDelimitedParam.setValue(false);
+        useAliasParam.setValue(false);
+        activeDelimited = ElementParameterParser.getValue(targetNode, "__ACTIVE_DATABASE_DELIMITED_IDENTIFIERS__");
+        useAlias = ElementParameterParser.getValue(targetNode, "__USE_ALIAS_IN_OUTPUT_TABLE__");
+        assertTrue("false".equals(activeDelimited));
+        assertTrue("false".equals(useAlias));
+
+        activeDelimitedParam.setValue(true);
+        useAliasParam.setValue(true);
+        activeDelimited = ElementParameterParser.getValue(targetNode, "__ACTIVE_DATABASE_DELIMITED_IDENTIFIERS__");
+        useAlias = ElementParameterParser.getValue(targetNode, "__USE_ALIAS_IN_OUTPUT_TABLE__");
+        assertTrue("true".equals(activeDelimited));
+        assertTrue("true".equals(useAlias));
     }
 }

@@ -92,6 +92,26 @@ imports="
 			<%
 			connect_end();
 		}
+
+		public void connectWithProperties(INode node){
+		    beforeComponentProcess(node);
+
+        	connect_begin();
+        	java.util.List<java.util.Map<String, String>> properties = (java.util.List<java.util.Map<String,String>>)ElementParameterParser.getObjectValue(node, "__ENTRY_PROPERTIES__");
+        			%>
+        			java.util.Properties properties_<%=cid%> = new java.util.Properties();
+                                                        properties_<%=cid%>.setProperty("user",dbUser_<%=cid%>);
+                                                        properties_<%=cid%>.setProperty("password",dbPwd_<%=cid%>);
+                                                        <%
+                                                        for(java.util.Map<String, String> entry : properties){
+                                                        %>
+                                                        properties_<%=cid%>.setProperty(<%=entry.get("KEY")%>,<%=entry.get("VALUE")%>);
+                                                        <%}%>
+
+                                    	conn_<%=cid%> = java.sql.DriverManager.getConnection(url_<%=cid%>,properties_<%=cid%>);
+        			<%
+        	connect_end();
+        }
 		
 		public void connect_begin(){
 			logInfo(node,"debug",cid+" - Connection attempt to '\" + url_"+cid+" + \"' with the username '\" + dbUser_"+cid+" + \"'.");

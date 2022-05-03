@@ -51,6 +51,19 @@ imports="
 		}
 
 		public void createConnection(INode node, boolean needUserAndPassword) {
+		    createConnection(node,needUserAndPassword ? 1 : 0);
+
+
+		}
+
+/*
+* mode:
+*        0. Without User and Password
+*        1. need User And Password
+*        2. without connection
+*/
+		public void createConnection(INode node, int mode) {
+
 			cid = node.getUniqueName();
 			dbproperties = ElementParameterParser.getValue(node, "__PROPERTIES__");
 			dbhost = ElementParameterParser.getValue(node, "__HOST__");
@@ -90,23 +103,25 @@ imports="
 				<%this.setURL(node);%>
 				<%
 				log4jCodeGenerateUtil.debugConnectionParams(node);
-				if (!needUserAndPassword){
+				if (mode == 0){
 					log4jCodeGenerateUtil.connect_begin_noUser();
 				} else {
 					log4jCodeGenerateUtil.connect_begin();
 				}
 				%>
 <%
-			if(needUserAndPassword) {
+			if(mode == 1) {
 %>
 				conn_<%=cid%> = java.sql.DriverManager.getConnection(url_<%=cid %>,dbUser_<%=cid%>,dbPwd_<%=cid%>);
 <%
-			} else {
+			} else if(mode ==0){
 %>
 				conn_<%=cid%> = java.sql.DriverManager.getConnection(url_<%=cid %>);
 <%
 			}
+			if(mode != 2){
 			log4jCodeGenerateUtil.connect_end();
+			}
 %>
 		        <%this.afterUseNewConnection(node);%>
 <%

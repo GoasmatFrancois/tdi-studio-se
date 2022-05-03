@@ -200,9 +200,6 @@
                  id="protobuf-java-2.5.0.jar">
            </library>
            <library
-                 id="log4j-1.2.17.jar">
-           </library>
-           <library
                  id="slf4j-api-1.7.5.jar">
            </library>
            <library
@@ -224,32 +221,6 @@
                  id="commons-io-2.4.jar">
            </library>
         </libraryNeededGroup>        
-        <libraryNeededGroup
-              description="The lastest Pig libraries of MAPR50X"
-              id="PIG-BASE-LIB-MAPR50X_LASTEST"
-              name="PIG-BASE-LIB-MAPR50X_LASTEST">
-           <group
-                 id="MAPREDUCE-LIB-MAPR50X_LASTEST">
-           </group>
-           <library
-                 id="pig-withouthadoop-mapr-5.0.X-lastest">
-           </library>
-           <library
-                 id="hadoop-hdfs-mapr-5.0.X-lastest">
-           </library>
-           <library
-                 id="antlr-runtime-3.4.jar">
-           </library>
-           <library
-                 id="automaton-1.11-8.jar">
-           </library>
-           <library
-                 id="joda-time-2.3.jar">
-           </library>
-           <library
-                 id="jline-1.0.jar">
-           </library>
-        </libraryNeededGroup>     
         <libraryNeededGroup
            description="The lastest Map Reduce libraries of MAPR50X"
            id="MAPREDUCE-LIB-MAPR50X_LASTEST"

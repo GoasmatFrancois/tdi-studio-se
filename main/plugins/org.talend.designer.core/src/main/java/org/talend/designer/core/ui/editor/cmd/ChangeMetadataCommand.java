@@ -44,6 +44,7 @@ import org.talend.core.model.process.INodeConnector;
 import org.talend.core.model.utils.TalendTextUtils;
 import org.talend.core.runtime.IAdditionalInfo;
 import org.talend.core.runtime.services.IGenericWizardService;
+import org.talend.core.service.IDQComponentService;
 import org.talend.designer.core.i18n.Messages;
 import org.talend.designer.core.model.components.EParameterName;
 import org.talend.designer.core.model.components.EmfComponent;
@@ -589,6 +590,12 @@ public class ChangeMetadataCommand extends Command {
                         }
                     }
                 }
+                if (GlobalServiceRegister.getDefault().isServiceRegistered(IDQComponentService.class)) {
+                    final IDQComponentService service = GlobalServiceRegister
+                            .getDefault()
+                            .getService(IDQComponentService.class);
+                    service.externalComponentInputMetadataChange(node, newInputMetadata, currentInputMetadata);
+                }
                 MetadataToolHelper.copyTable(newInputMetadata, currentInputMetadata);
                 currentOutputMetadata.setOriginalColumns(newOutputMetadata.getOriginalColumns());
             }
@@ -605,6 +612,11 @@ public class ChangeMetadataCommand extends Command {
                         node.setPropertyValue(EParameterName.SCHEMA_TYPE.getName(), EmfComponent.BUILTIN);
                     }
                 }
+            }
+            if (GlobalServiceRegister.getDefault().isServiceRegistered(IDQComponentService.class)) {
+                final IDQComponentService service =
+                        GlobalServiceRegister.getDefault().getService(IDQComponentService.class);
+                service.externalComponentOutputMetadataChange(node, newOutputMetadata, currentOutputMetadata);
             }
             MetadataToolHelper.copyTable(newOutputMetadata, currentOutputMetadata);
             currentOutputMetadata.setOriginalColumns(newOutputMetadata.getOriginalColumns());
@@ -894,6 +906,9 @@ public class ChangeMetadataCommand extends Command {
             changeTableNameParameter(newdbTableName, olddbTableName, uniqueName, dbTableElementField);
             if (((Node) curNode).getComponent().getName().startsWith("tSAPADSO")) { //$NON-NLS-1$
                 IElementParameter serviceNameElementField = curNode.getElementParameter("SERVICE_NAME"); //$NON-NLS-1$
+                if (((Node) curNode).getComponent().getName().startsWith("tSAPADSOOutput")) {//$NON-NLS-1$
+                    serviceNameElementField = curNode.getElementParameter("ADSO_NAME");//$NON-NLS-1$
+                }
                 changeTableNameParameter(newdbTableName, olddbTableName, uniqueName, serviceNameElementField);
             }
             if (((Node) curNode).isELTComponent()) {

@@ -27,6 +27,7 @@ import org.eclipse.jface.fieldassist.IContentProposal;
 import org.eclipse.jface.fieldassist.IContentProposalListener;
 import org.eclipse.jface.fieldassist.IContentProposalProvider;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.TransferDropTargetListener;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ComboBoxCellEditor;
 import org.eclipse.jface.viewers.DialogCellEditor;
@@ -170,7 +171,9 @@ import org.talend.designer.mapper.model.tableentry.VarTableEntry;
 import org.talend.designer.mapper.ui.color.ColorInfo;
 import org.talend.designer.mapper.ui.color.ColorProviderMapper;
 import org.talend.designer.mapper.ui.dialog.ListStringValueDialog;
+import org.talend.designer.mapper.ui.dnd.CompleteDropTargetTableListener;
 import org.talend.designer.mapper.ui.dnd.DragNDrop;
+import org.talend.designer.mapper.ui.dnd.DropContextAnalyzer;
 import org.talend.designer.mapper.ui.event.MousePositionAnalyser;
 import org.talend.designer.mapper.ui.event.ResizeHelper;
 import org.talend.designer.mapper.ui.event.ResizeHelper.RESIZE_MODE;
@@ -2066,6 +2069,11 @@ public abstract class DataMapTableView extends Composite implements IDataMapTabl
         behavior.setCellEditorDialog(dialog);
 
         final Text expressionTextEditor = cellEditor.getTextControl();
+
+        expressionTextEditor.setData(DropContextAnalyzer.PROP_DND_OPERATE_CONTROL, tableViewerCreator.getTable());
+        TransferDropTargetListener completeDropTargetListener = new CompleteDropTargetTableListener(mapperManager,
+                tableViewerCreator.getTable());
+        DragNDrop.addDropListener(expressionTextEditor, completeDropTargetListener);
 
         if (isConstraintExpressionCellEditor) {
             constraintExpressionTextEditor = expressionTextEditor;

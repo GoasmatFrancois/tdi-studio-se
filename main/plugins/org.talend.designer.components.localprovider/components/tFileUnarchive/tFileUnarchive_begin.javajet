@@ -62,10 +62,10 @@
        || tmpFileURL_<%=cid %>.endsWith(".tgz")
        || tmpFileURL_<%=cid %>.endsWith(".gz")
        ){
-           isValidArchive_<%= cid %> = org.talend.archive.IntegrityUtil.isGZIPValid(zipFileURL_<%=cid %>);
+           isValidArchive_<%= cid %> = com.talend.compress.zip.IntegrityUtil.isGZIPValid(zipFileURL_<%=cid %>);
 
        }else if(tmpFileURL_<%=cid %>.endsWith(".tar")){
-       		isValidArchive_<%= cid %> = org.talend.archive.IntegrityUtil.isTarValid(zipFileURL_<%=cid %>);
+       		isValidArchive_<%= cid %> = com.talend.compress.zip.IntegrityUtil.isTarValid(zipFileURL_<%=cid %>);
        }
            <%
     if(dieWhenArchiveCorrupted){

@@ -39,6 +39,7 @@ imports="
 CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
 INode node = (INode) codeGenArgument.getArgument();
 String cid = node.getUniqueName();
+boolean isLog4jEnabled = ("true").equals(ElementParameterParser.getValue(node.getProcess(), "__LOG4J_ACTIVATE__"));
 
 List<Map<String, String>> spArgs =
 	(List<Map<String, String>>) ElementParameterParser.getObjectValue(node, "__SP_ARGS__");
@@ -195,7 +196,7 @@ if (canGenerate) {
      			  		method = "Bytes";
      	  			} else if (("Integer").equals(typeToGenerate)) {
     		 	   		method = "Int";
-    		 	   	} else {
+    				} else {
     					method = typeToGenerate.substring(0, 1).toUpperCase() + typeToGenerate.substring(1);
     				}
     				
@@ -229,12 +230,25 @@ if (canGenerate) {
 						oracle.xdb.XMLType xmlType_<%=cid%> = oracle.xdb.XMLType.createXML(connection_<%=cid%>, <%=inConnectionName%>.<%=argName%>);
 						statement_<%=cid%>.setObject(<%=argIndex%>, xmlType_<%=cid%>);
 						<%
-					} else {
-    					%>
-    					statement_<%=cid%>.set<%=method%>(<%=argIndex%>, <%=inConnectionName%>.<%=argName%>);
-    					<%
-    				}
-    				
+                    } else if (("String").equals(typeToGenerate) && "CLOB".equals(dbType)) {
+%>
+                        java.sql.Clob clob_<%=cid %> = connection_<%=cid %>.createClob();
+                        clob_<%=cid %>.setString(1, <%=inConnectionName%>.<%=argName%>);
+                        statement_<%=cid%>.setClob(<%=argIndex%>, clob_<%=cid %>);
+<%
+                    } else {
+                        if (isLog4jEnabled && ("String").equals(typeToGenerate)) {
+%>
+                            if (<%=inConnectionName%>.<%=argName%>.length() > 4000) {
+                                log.warn("String value is too long for VARCHAR type");
+                            }
+<%
+                        }
+%>
+                        statement_<%=cid%>.set<%=method%>(<%=argIndex%>, <%=inConnectionName%>.<%=argName%>);
+<%
+                    }
+
     				if (nullable) {
     					%>
     					}

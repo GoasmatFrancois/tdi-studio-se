@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 import org.talend.commons.ui.runtime.swt.tableviewer.TableViewerCreatorColumnNotModifiable;
 import org.talend.commons.ui.runtime.ws.WindowSystem;
 import org.talend.commons.ui.swt.tableviewer.TableViewerCreator;
@@ -45,6 +46,8 @@ import org.talend.designer.mapper.ui.visualmap.zone.Zone;
  *
  */
 public class DropContextAnalyzer {
+
+    public static final String PROP_DND_OPERATE_CONTROL = "PROP_DND_OPERATE_CONTROL";
 
     private DropTargetEvent event;
 
@@ -105,14 +108,21 @@ public class DropContextAnalyzer {
 
         DropTarget dropTarget = (DropTarget) event.widget;
         Control controlTarget = dropTarget.getControl();
-        dataMapTableViewTarget = mapperManager.retrieveDataMapTableView(controlTarget);
         if (controlTarget instanceof Table) {
             currentTableTarget = (Table) dropTarget.getControl();
         } else if (controlTarget instanceof StyledText) {
             currentStyledTextTarget = (StyledText) dropTarget.getControl();
-        } else {
+        } else if (controlTarget instanceof Text) {
+            Object storedData = controlTarget.getData(DropContextAnalyzer.PROP_DND_OPERATE_CONTROL);
+            if (storedData instanceof Table) {
+                currentTableTarget = (Table) storedData;
+                controlTarget = currentTableTarget;
+            }
+        }
+        if (currentTableTarget == null && currentStyledTextTarget == null) {
             throw new IllegalArgumentException(Messages.getString("DropContextAnalyzer.0", controlTarget.toString())); //$NON-NLS-1$
         }
+        dataMapTableViewTarget = mapperManager.retrieveDataMapTableView(controlTarget);
         zoneTarget = dataMapTableViewTarget.getZone();
         draggedData = TableEntriesTransfer.getInstance().getDraggedData();
         dataMapTableViewSource = (DataMapTableView) draggedData.getDataMapTableViewSource();

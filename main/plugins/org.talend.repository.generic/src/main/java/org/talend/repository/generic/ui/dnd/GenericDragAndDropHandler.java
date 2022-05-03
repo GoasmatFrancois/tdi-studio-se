@@ -90,7 +90,7 @@ public class GenericDragAndDropHandler extends AbstractDragAndDropServiceHandler
             Map<Object, Object> contextMap) {
         if (value != null && canHandle(connection)) {
             if (GlobalServiceRegister.getDefault().isServiceRegistered(IGenericWizardService.class)) {
-                IGenericWizardService wizardService = (IGenericWizardService) GlobalServiceRegister.getDefault()
+                IGenericWizardService wizardService = GlobalServiceRegister.getDefault()
                         .getService(IGenericWizardService.class);
                 if (wizardService != null && wizardService.isGenericConnection(connection)) {
                     List<ComponentProperties> componentPropertiesList = wizardService.getAllComponentProperties(connection,
@@ -102,7 +102,7 @@ public class GenericDragAndDropHandler extends AbstractDragAndDropServiceHandler
         return null;
     }
 
-    private Object getGenericRepositoryValue(Connection connection, List<ComponentProperties> componentProperties, String value,
+    public Object getGenericRepositoryValue(Connection connection, List<ComponentProperties> componentProperties, String value,
             IMetadataTable table) {
         if (componentProperties != null && value != null) {
             if (EConnectionParameterName.USERNAME.getName().equals(value)) {
@@ -125,6 +125,9 @@ public class GenericDragAndDropHandler extends AbstractDragAndDropServiceHandler
                             if (paramValue != null) {
                                 if (property.getName().equals("password")) {
                                     return getPassword(connection, paramValue.toString());
+                                } else if (EConnectionParameterName.GENERIC_MAPPING_FILE.getDisplayName()
+                                        .equals(property.getName())) {
+                                    return paramValue.toString();
                                 }
                                 return getRepositoryValueOfStringType(connection, paramValue.toString());
                             } else {
@@ -148,12 +151,12 @@ public class GenericDragAndDropHandler extends AbstractDragAndDropServiceHandler
         return null;
     }
 
-    private String getPassword(Connection connection, String value) {
+    public static String getPassword(Connection connection, String value) {
         String pass = connection.getValue(value, false);
         if (ContextParameterUtils.isContextMode(connection, value)) {
             return pass;
         }
-        return TalendQuoteUtils.addQuotesIfNotExist(pass);
+        return TalendQuoteUtils.addQuotes(pass);
     }
 
     private Object getPropertiesValue(Connection connection, Properties properties, String value) {
@@ -257,7 +260,7 @@ public class GenericDragAndDropHandler extends AbstractDragAndDropServiceHandler
         if (((ConnectionItem) item).getConnection().getCompProperties() == null) {
             return neededComponents;
         }
-        IComponentsService service = (IComponentsService) GlobalServiceRegister.getDefault().getService(IComponentsService.class);
+        IComponentsService service = GlobalServiceRegister.getDefault().getService(IComponentsService.class);
         Collection<IComponent> components = service.getComponentsFactory().readComponents();
         for (IComponent component : components) {
             if (EComponentType.GENERIC.equals(component.getComponentType())) {
@@ -283,7 +286,7 @@ public class GenericDragAndDropHandler extends AbstractDragAndDropServiceHandler
             }
             IGenericDBService dbService = null;
             if (GlobalServiceRegister.getDefault().isServiceRegistered(IGenericDBService.class)) {
-                dbService = (IGenericDBService) GlobalServiceRegister.getDefault().getService(IGenericDBService.class);
+                dbService = GlobalServiceRegister.getDefault().getService(IGenericDBService.class);
             }
             if (dbService != null && dbService.getExtraTypes().contains(parent.getObjectType())) {
                 return true;

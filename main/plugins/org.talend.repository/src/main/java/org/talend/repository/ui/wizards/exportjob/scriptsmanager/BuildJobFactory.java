@@ -105,9 +105,6 @@ public class BuildJobFactory {
                             NodeType currentNode = (NodeType) o;
                             if (BuildJobConstants.esbComponents.contains(currentNode.getComponentName())) {
                                 esb = true;
-                                if (type == null || "STANDALONE".equals(type)) {
-                                    type = "OSGI";
-                                }
                                 break;
                             }
                         }

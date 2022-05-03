@@ -257,6 +257,18 @@
 			</ITEMS>
 	</PARAMETER>
 
+	  <PARAMETER
+			  NAME="REDSHIFT_DRIVER_VERSION"
+			  FIELD="CLOSED_LIST"
+			  NUM_ROW="50"
+			  SHOW_IF="(DBTYPE=='REDSHIFT' and USE_EXISTING_CONNECTION=='FALSE')"
+			  REPOSITORY_VALUE="DRIVER_VERSION">
+		  <ITEMS DEFAULT="DRIVER_V2">
+			  <ITEM NAME="DRIVER_V1" VALUE="DRIVER_V1" />
+			  <ITEM NAME="DRIVER_V2" VALUE="DRIVER_V2" />
+		  </ITEMS>
+	  </PARAMETER>
+
 	<PARAMETER
       NAME="CONNECTION_AS400"
       FIELD="COMPONENT_LIST"
@@ -758,11 +770,31 @@
       FIELD="TEXT" 
       NUM_ROW="10" 
       REPOSITORY_VALUE="PROPERTIES_STRING"
-      NOT_SHOW_IF="(DBTYPE=='SQLITE') OR ((DBTYPE=='DBORACLE') AND (CONNECTION_TYPE == 'ORACLE_WALLET')) OR USE_EXISTING_CONNECTION == 'true'"
+      NOT_SHOW_IF="(DBTYPE=='SQLITE') OR ((DBTYPE=='DBORACLE') AND (CONNECTION_TYPE == 'ORACLE_WALLET')) OR ((DBTYPE=='REDSHIFT')  AND (USE_STRING_PROPERTIES == 'false') AND (REDSHIFT_DRIVER_VERSION == 'DRIVER_V2'))  OR USE_EXISTING_CONNECTION == 'true'"
     >
         <DEFAULT IF="((DBTYPE!='AS400') AND (DBTYPE!='MSSQL'))">""</DEFAULT>
         <DEFAULT IF="(DBTYPE=='AS400') OR (DBTYPE=='MSSQL')">"prompt=false"</DEFAULT>
     </PARAMETER>
+
+	  <PARAMETER
+			  NAME="USE_STRING_PROPERTIES"
+			  SHOW_IF="(USE_EXISTING_CONNECTION == 'false') AND (DBTYPE=='REDSHIFT') AND (REDSHIFT_DRIVER_VERSION == 'DRIVER_V2')"
+			  REPOSITORY_VALUE="USE_STRING_PROPERTIES"
+			  FIELD="CHECK"
+			  NUM_ROW="5"
+			  REQUIRED="true"
+	  >
+	  </PARAMETER>
+
+	  <PARAMETER NAME="ENTRY_PROPERTIES" FIELD="TABLE"
+				 SHOW_IF="(USE_EXISTING_CONNECTION == 'false') AND (DBTYPE=='REDSHIFT')  AND (USE_STRING_PROPERTIES == 'false') AND (REDSHIFT_DRIVER_VERSION == 'DRIVER_V2')"
+				 REPOSITORY_VALUE="ENTRY_PROPERTIES"
+				 REQUIRED="false" NUM_ROW="10" NB_LINES="4">
+		  <ITEMS>
+			  <ITEM NAME="KEY" />
+			  <ITEM NAME="VALUE" />
+		  </ITEMS>
+	  </PARAMETER>
 
     <PARAMETER NAME="MSSQL_ACTIVE_DIR_AUTH" FIELD="CHECK" NUM_ROW="12" SHOW_IF="(USE_EXISTING_CONNECTION == 'false') AND (DBTYPE=='MSSQL') AND (MSSQL_DRIVER=='MSSQL_PROP')">
         <DEFAULT>false</DEFAULT>
@@ -854,13 +886,14 @@
 		<IMPORT NAME="Driver-SYBASE-JCONN3" MODULE="jconn3.jar" MVN="mvn:org.talend.libraries/jconn3/6.0.0" BundleID="" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DBTYPE=='SYBASE') AND (DB_SYBASE_VERSION == 'SYBSEIQ_12_15')" />
 		<IMPORT NAME="Driver-SYBASE-JCONN4" MODULE="jconn4.jar" MVN="mvn:org.talend.libraries/jconn4/6.0.0" BundleID="" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DBTYPE=='SYBASE') AND (DB_SYBASE_VERSION == 'SYBSEIQ_16')" />
 		<IMPORT NAME="Driver-SqlAnywhere" MODULE="sajdbc4.jar" MVN="mvn:sap.jdbc4.sqlanywhere/sajdbc4/17.0.0"  BundleID="" REQUIRED_IF = "(DB_VERSION == 'SYBSEIQ_16_SA') AND (USE_EXISTING_CONNECTION == 'false')" />
-		<IMPORT NAME="Driver-Teradata_jdbc" MODULE="terajdbc4-16.20.00.02.jar" MVN="mvn:com.teradata/terajdbc4/16.20.00.02"   REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DBTYPE=='TERADATA')" />
-		<IMPORT NAME="Driver-Teradata_config" MODULE="tdgssconfig-16.20.00.02.jar" MVN="mvn:com.teradata/tdgssconfig/16.20.00.02"   REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DBTYPE=='TERADATA')" />
+		<IMPORT NAME="Driver-Teradata" MODULE="terajdbc4-17.10.00.27.jar" MVN="mvn:com.teradata.jdbc/terajdbc4/17.10.00.27" REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DBTYPE=='TERADATA')" />
 		<IMPORT NAME="Driver-Netezza" MODULE="nzjdbc.jar" MVN="mvn:org.talend.libraries/nzjdbc/6.0.0"  REQUIRED_IF="(USE_EXISTING_CONNECTION == 'false') AND (DBTYPE=='NETEZZA')" />
 		
   		<IMPORT NAME="Driver-EXASolution" MODULE="exajdbc-6.0.9302.jar" MVN="mvn:org.talend.libraries/exajdbc-6.0.9302/6.3.0"  REQUIRED_IF="(DBTYPE=='EXASOL') and (USE_EXISTING_CONNECTION == 'false')" />
-		<IMPORT NAME="Driver-Redshift" MODULE="redshift-jdbc42-no-awssdk-1.2.37.1061.jar" MVN="mvn:com.amazon.redshift/redshift-jdbc42-no-awssdk/1.2.37.1061" REQUIRED_IF="(DBTYPE=='REDSHIFT') and (USE_EXISTING_CONNECTION == 'false')" />
-		<IMPORT NAME="Driver-Snowflake" MODULE="snowflake-jdbc-3.12.11.jar" MVN="mvn:net.snowflake/snowflake-jdbc/3.12.11"  REQUIRED_IF="(DBTYPE=='SNOWFLAKE') and (USE_EXISTING_CONNECTION == 'false')" />
+		 <IMPORT NAME="Driver-Redshift-v2" MODULE="redshift-jdbc42-2.1.0.3.jar" MVN="mvn:com.amazon.redshift/redshift-jdbc42/2.1.0.3" REQUIRED_IF="(DBTYPE=='REDSHIFT') AND (USE_EXISTING_CONNECTION == 'false') AND (REDSHIFT_DRIVER_VERSION == 'DRIVER_V2')" />
+		 <IMPORT NAME="Driver-Redshift-v1" MODULE="redshift-jdbc42-no-awssdk-1.2.55.1083.jar" MVN="mvn:com.amazon.redshift/redshift-jdbc42-no-awssdk/1.2.55.1083" REQUIRED_IF="(DBTYPE=='REDSHIFT') and (USE_EXISTING_CONNECTION == 'false') AND (REDSHIFT_DRIVER_VERSION == 'DRIVER_V1')" />
+		<IMPORT NAME="antlr4-runtime-4.8-1.jar" MODULE="antlr4-runtime-4.8-1.jar" MVN="mvn:org.antlr/antlr4-runtime/4.8-1"  REQUIRED_IF="(DBTYPE=='REDSHIFT') and (USE_EXISTING_CONNECTION == 'false')" />
+		<IMPORT NAME="Driver-Snowflake" MODULE="snowflake-jdbc-3.13.14.jar" MVN="mvn:net.snowflake/snowflake-jdbc/3.13.14"  REQUIRED_IF="(DBTYPE=='SNOWFLAKE') and (USE_EXISTING_CONNECTION == 'false')" />
 		<IMPORT NAME="Driver-VERTICA_9.0" MODULE="vertica-jdbc-9.3.1-0.jar" MVN="mvn:com.vertica/vertica-jdbc/9.3.1-0"   REQUIRED_IF="(DBTYPE=='VERTICA') and (USE_EXISTING_CONNECTION == 'false') and (DB_VERTICA_VERSION=='VERTICA_9_0')"/>
      </IMPORTS>
    </CODEGENERATION>

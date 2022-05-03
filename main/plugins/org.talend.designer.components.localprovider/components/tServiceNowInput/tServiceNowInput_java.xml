@@ -437,7 +437,7 @@
             <DEFAULT>1000</DEFAULT>
         </PARAMETER>
         <PARAMETER COLOR="0;0;0" FIELD="LABEL" NAME="INFO" NUM_ROW="51" REQUIRED="true">
-            <DEFAULT>If limit set to empty "" string or 0 it will be disabled.</DEFAULT>
+            <DEFAULT>Limit is disabled if set to 0 or empty "" string.</DEFAULT>
         </PARAMETER>
         <PARAMETER FIELD="CHECK" NAME="ENABLE_ADVANCED_CONDITIONS" NUM_ROW="90" >
             <DEFAULT>false</DEFAULT>

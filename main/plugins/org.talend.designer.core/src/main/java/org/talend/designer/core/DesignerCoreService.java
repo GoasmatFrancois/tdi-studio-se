@@ -888,6 +888,6 @@ public class DesignerCoreService implements IDesignerCoreService {
     
     @Override
     public String[] getNeedRemoveModulesForLog4j() {
-        return UpdateLog4jJarUtils.NEEDREMOVEMODULES;
+        return UpdateLog4jJarUtils.NEED_REMOVE_MODULES;
     }
 }

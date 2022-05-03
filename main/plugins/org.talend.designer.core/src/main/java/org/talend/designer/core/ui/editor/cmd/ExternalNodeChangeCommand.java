@@ -29,6 +29,7 @@ import org.talend.core.model.components.IODataComponentContainer;
 import org.talend.core.model.metadata.ColumnNameChanged;
 import org.talend.core.model.metadata.IMetadataColumn;
 import org.talend.core.model.metadata.IMetadataTable;
+import org.talend.core.model.metadata.MetadataTable;
 import org.talend.core.model.metadata.MetadataToolHelper;
 import org.talend.core.model.process.EConnectionType;
 import org.talend.core.model.process.EParameterFieldType;
@@ -158,8 +159,7 @@ public class ExternalNodeChangeCommand extends Command {
                         repositoryMetadata = repositoryMetadata.clone();
                         repositoryMetadata.setTableName(connection.getSource().getUniqueName());
                         ((org.talend.core.model.metadata.MetadataTable) repositoryMetadata).setRepository(true);
-                        if (!repositoryMetadata
-                                .sameMetadataAs(connection.getMetadataTable(), IMetadataColumn.OPTIONS_IGNORE_USED)) {
+                        if (needChangeSchemaType(connection, repositoryMetadata)) {
                             connection.getSource().setPropertyValue(EParameterName.SCHEMA_TYPE.getName(), EmfComponent.BUILTIN);
                         }
                     }
@@ -168,6 +168,43 @@ public class ExternalNodeChangeCommand extends Command {
         }
 
         setLabel(Messages.getString("ExternalNodeChangeCommand.modifaicationFrom") + node.getUniqueName()); //$NON-NLS-1$
+    }
+
+    protected boolean needChangeSchemaType(IConnection connection, IMetadataTable repositoryMetadata) {
+        EConnectionType lineStyle = connection.getLineStyle();
+        String connectorName = connection.getConnectorName();
+        IMetadataTable metadataTable = connection.getMetadataTable();
+        if (EConnectionType.REJECT == lineStyle || "REJECT".equals(connectorName)) {
+            IElementParameter inputSchemaParam = null;
+            for (IElementParameter param : connection.getSource().getElementParameters()) {
+                if ((EParameterFieldType.SCHEMA_TYPE.equals(param.getFieldType())
+                        || EParameterFieldType.SCHEMA_REFERENCE.equals(param.getFieldType()))
+                        && (param.getContext().equals(connectorName))) {
+                    inputSchemaParam = param;
+                    break;
+                }
+            }
+
+            if (inputSchemaParam != null) {
+                Object value = inputSchemaParam.getValue();
+                if (value instanceof MetadataTable) {
+                    MetadataTable table = (MetadataTable) value;
+                    List<IMetadataColumn> columns = table.getListColumns();
+
+                    List<IMetadataColumn> inputColumnListWithUnselected = new ArrayList<IMetadataColumn>(
+                            metadataTable.getListColumns(true));
+                    // errorCode,errorFields,errorMessage
+                    for (int i = 0; i < columns.size(); i++) {
+                        IMetadataColumn inputColumn = columns.get(i);
+                        IMetadataColumn myColumn = metadataTable.getColumn(inputColumn.getLabel());
+                        inputColumnListWithUnselected.remove(myColumn);
+                    }
+                    return !repositoryMetadata.sameMetadataAs(inputColumnListWithUnselected, IMetadataColumn.OPTIONS_IGNORE_USED, false);
+                }
+            }
+        }
+        return !repositoryMetadata
+                .sameMetadataAs(metadataTable, IMetadataColumn.OPTIONS_IGNORE_USED);
     }
 
     private void refreshCodeView() {

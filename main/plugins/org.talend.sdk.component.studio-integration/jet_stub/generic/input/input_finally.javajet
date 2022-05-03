@@ -34,7 +34,7 @@ try {
     }
 } catch (final RuntimeException re) {
     swallowNextException_<%=cid%> = true;
-    throw new TalendException(re, currentComponent, globalMap);
+    throw new TalendException(re, currentComponent, cLabel, globalMap);
 } finally {
     try {
         if (mapper_<%=cid%> != null) {
@@ -42,7 +42,7 @@ try {
         }
     } catch (final RuntimeException re) {
         if (!swallowNextException_<%=cid%>) {
-            throw new TalendException(re, currentComponent, globalMap);
+            throw new TalendException(re, currentComponent, cLabel, globalMap);
         }
     }
 }

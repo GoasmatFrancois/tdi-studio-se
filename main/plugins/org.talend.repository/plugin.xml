@@ -400,7 +400,7 @@
    </extension>
    <extension
          point="org.talend.core.migrationTask">
-         
+
   <projecttask
         beforeLogon="true"
         breaks="7.3.1"
@@ -3714,6 +3714,26 @@
                version="8.0.1">
 
         </projecttask>
+
+		    <projecttask
+               beforeLogon="false"
+               breaks="8.0.0"
+               class="org.talend.repository.model.migration.RedshiftVersion2MigrationTask"
+               description="Change the Driver version to V1 for old Redshift job"
+               id="org.talend.repository.model.migration.RedshiftVersion2MigrationTask"
+               name="RedshiftVersion2MigrationTask"
+               version="8.0.1">
+        </projecttask>
+        <projecttask
+              beforeLogon="true"
+              breaks="8.0.1"
+              class="org.talend.repository.model.migration.EncryptClientSecretMicrosoftCRMMigrationTask"
+              description="Change Client Secret field to password"
+              id="org.talend.repository.model.migration.EncryptClientSecretMicrosoftCRMMigrationTask"
+              name="EncryptClientSecretMicrosoftCRMMigrationTask"
+              version="8.0.1">
+
+        </projecttask>
    </extension>
 
    <extension
@@ -3724,12 +3744,13 @@
           message="Library needed to export to JBoss ESB"
           name="jbossesb-rosetta.jar"  mvn_uri="mvn:org.talend.libraries/jbossesb-rosetta/6.0.0"
           required="true"/>
+      
       <libraryNeeded
         context="plugin:org.talend.libraries.apache"
-        id="log4j-1.2.17.jar"
-        name="log4j-1.2.17.jar"
-        mvn_uri="mvn:log4j/log4j/1.2.17"
-        uripath="platform:/plugin/org.talend.libraries.apache/lib/log4j-1.2.17.jar">
+        id="reload4j-1.2.19.jar"
+        name="reload4j-1.2.19.jar"
+        mvn_uri="mvn:ch.qos.reload4j/reload4j/1.2.19"
+        uripath="platform:/plugin/org.talend.libraries.apache/lib/reload4j-1.2.19.jar">
       </libraryNeeded>
     
       <libraryNeeded

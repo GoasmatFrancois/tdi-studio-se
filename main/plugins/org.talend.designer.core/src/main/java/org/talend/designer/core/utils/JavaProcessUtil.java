@@ -39,6 +39,7 @@ import org.talend.commons.utils.generation.JavaUtils;
 import org.talend.commons.utils.resource.FileExtensions;
 import org.talend.core.CorePlugin;
 import org.talend.core.GlobalServiceRegister;
+import org.talend.core.ITDQComponentService;
 import org.talend.core.hadoop.IHadoopClusterService;
 import org.talend.core.hadoop.repository.HadoopRepositoryUtil;
 import org.talend.core.language.ECodeLanguage;
@@ -145,10 +146,13 @@ public class JavaProcessUtil {
 
         UpdateLog4jJarUtils.addLog4jToModuleList(modulesNeeded, Log4jPrefsSettingManager.getInstance().isSelectLog4j2(), process);
         Set<ModuleNeeded> modulesNeededSet = new HashSet<ModuleNeeded>(modulesNeeded);
-        List<IClasspathAdjuster> classPathAdjusters = ClasspathAdjusterProvider.getClasspathAdjuster();
-        // add for TDQ-19814 to add a runtime dependency when generate code and get the module in the javajet
-        for (IClasspathAdjuster adjuster : classPathAdjusters) {
-            modulesNeededSet = adjuster.adjustPomGeneration(process, modulesNeededSet);
+        // Execute the code only TDQ feature exist
+        if (GlobalServiceRegister.getDefault().isServiceRegistered(ITDQComponentService.class)) {
+            List<IClasspathAdjuster> classPathAdjusters = ClasspathAdjusterProvider.getClasspathAdjuster();
+            // add for TDQ-19814 to add a runtime dependency when generate code and get the module in the javajet
+            for (IClasspathAdjuster adjuster : classPathAdjusters) {
+                modulesNeededSet = adjuster.adjustPomGeneration(process, modulesNeededSet);
+            }
         }
         return modulesNeededSet;
     }
@@ -471,6 +475,43 @@ public class JavaProcessUtil {
         return modulesNeeded;
     }
 
+    public static void getSubJobs(List<IProcess> subJobProcesses, final IProcess process, Set<String> searchedProcessIds, int options) {
+        if (!BitwiseOptionUtils.containOption(options, TalendProcessOptionConstants.MODULES_WITH_CHILDREN)) {
+            return;
+        }
+        if (searchedProcessIds.contains(process.getId())) {
+            return;
+        }
+
+        List<INode> nodeList = (List<INode>) process.getGeneratingNodes();
+
+        searchedProcessIds.add(process.getId());
+
+        if (nodeList != null) {
+            for (INode node : nodeList) {
+                if (node.getComponent().getName().equals("tRunJob")) { //$NON-NLS-1$
+                    IElementParameter processIdparam = node.getElementParameter("PROCESS_TYPE_PROCESS"); //$NON-NLS-1$
+                    IElementParameter processVersionParam = node.getElementParameter(EParameterName.PROCESS_TYPE_VERSION.getName());
+
+                    ProcessItem processItem = null;
+                    if (processVersionParam != null) {
+                        processItem = ItemCacheManager.getProcessItem((String) processIdparam.getValue(), (String) processVersionParam.getValue());
+                    } else {
+                        processItem = ItemCacheManager.getProcessItem((String) processIdparam.getValue());
+                    }
+
+                    if (processItem != null) {
+                        IDesignerCoreService service = CorePlugin.getDefault().getDesignerCoreService();
+                        IProcess childProcess = service.getProcessFromItem(processItem);
+                        subJobProcesses.add(childProcess);
+                        getSubJobs(subJobProcesses, childProcess, searchedProcessIds, options);
+                    }
+                }
+            }
+        }
+
+    }
+    
     private static boolean getBooleanParamValue(final INode node, String paramName) {
         IElementParameter parameter = node.getElementParameter(paramName);
         if (parameter != null && parameter.getValue() != null) {
@@ -554,7 +595,7 @@ public class JavaProcessUtil {
         }
     }
 
-    private static void getModulesInTable(final IProcess process, IElementParameter curParam, List<ModuleNeeded> modulesNeeded) {
+    public static void getModulesInTable(final IProcess process, IElementParameter curParam, List<ModuleNeeded> modulesNeeded) {
         if (!(curParam.getValue() instanceof List)) {
             return;
         }
@@ -639,7 +680,7 @@ public class JavaProcessUtil {
         }
     }
 
-    private static ModuleNeeded getModuleValue(final IProcess process, String moduleValue) {
+    public static ModuleNeeded getModuleValue(final IProcess process, String moduleValue) {
         if (ContextParameterUtils.isContainContextParam(moduleValue)) {
             String var = ContextParameterUtils.getVariableFromCode(moduleValue);
             if (var != null) {

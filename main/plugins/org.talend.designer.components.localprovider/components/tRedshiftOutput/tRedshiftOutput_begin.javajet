@@ -198,6 +198,8 @@ if(("true").equals(useExistingConn)) {
 %>
 	<%
 } else {
+			int driveVersion = "DRIVER_V2".equals(ElementParameterParser.getValue(node, "__DRIVER_VERSION__"))? 2 : 1;
+            boolean useStringProperties = "true".equals(ElementParameterParser.getValue(node, "__USE_STRING_PROPERTIES__"));
 	%>
     java.lang.Class.forName("com.amazon.redshift.jdbc42.Driver");
     <%dbLog.conn().logJDBCDriver(dbLog.str("com.amazon.redshift.jdbc42.Driver"));%>
@@ -217,7 +219,7 @@ if(("true").equals(useExistingConn)) {
                      .append("/")
                      .append(<%=dbname%>);
 <%
-    if(dbproperties != null && !"\"\"".equals(dbproperties) && !"".equals(dbproperties)) {
+    if(( useStringProperties || driveVersion == 1) && dbproperties != null && !"\"\"".equals(dbproperties) && !"".equals(dbproperties)) {
 %>
         sbuilder_<%=cid%>.append("?").append(<%=dbproperties%>);
 <%
@@ -232,7 +234,27 @@ if(("true").equals(useExistingConn)) {
 	<%@ include file="@{org.talend.designer.components.localprovider}/components/templates/password.javajet"%>
 
 	String dbPwd_<%=cid %> = decryptedPassword_<%=cid%>;
+	<%
+	if(driveVersion == 2 && !useStringProperties){
+    				     List<Map<String, String>> properties = (List<Map<String,String>>)ElementParameterParser.getObjectValue(node, "__ENTRY_PROPERTIES__");
+            %>
+
+                        java.util.Properties properties_<%=cid%> = new java.util.Properties();
+                                        properties_<%=cid%>.setProperty("user",dbUser_<%=cid%>);
+                                        properties_<%=cid%>.setProperty("password",dbPwd_<%=cid%>);
+                                        <%
+                                        for(Map<String, String> entry : properties){
+                                        %>
+                                        properties_<%=cid%>.setProperty(<%=entry.get("KEY")%>,<%=entry.get("VALUE")%>);
+                                        <%}%>
+
+                    	conn_<%=cid%> = java.sql.DriverManager.getConnection(url_<%=cid%>,properties_<%=cid%>);
+            <%
+                         }else{
+
+            %>
 	conn_<%=cid%> = java.sql.DriverManager.getConnection(url_<%=cid %>,dbUser_<%=cid%>,dbPwd_<%=cid%>);
+	<%}%>
 	<%dbLog.conn().connTry(dbLog.var("url"), dbLog.var("dbUser"));%>
 	<%dbLog.conn().connDone(dbLog.var("url"));%>
 		

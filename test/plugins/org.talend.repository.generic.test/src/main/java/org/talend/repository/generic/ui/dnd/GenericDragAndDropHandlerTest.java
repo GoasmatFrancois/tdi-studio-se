@@ -12,16 +12,23 @@
 // ============================================================================
 package org.talend.repository.generic.ui.dnd;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.talend.components.api.properties.ComponentProperties;
+import org.talend.components.jdbc.wizard.JDBCConnectionWizardProperties;
 import org.talend.core.model.metadata.builder.connection.Connection;
+import org.talend.core.model.metadata.builder.connection.ConnectionFactory;
+import org.talend.core.model.metadata.builder.connection.DatabaseConnection;
+import org.talend.core.model.metadata.builder.connection.impl.ConnectionFactoryImpl;
+import org.talend.core.model.param.EConnectionParameterName;
 import org.talend.core.model.utils.AbstractDragAndDropServiceHandler;
 import org.talend.repository.generic.model.genericMetadata.GenericConnection;
 
@@ -31,8 +38,16 @@ import org.talend.repository.generic.model.genericMetadata.GenericConnection;
  */
 public class GenericDragAndDropHandlerTest {
 
+    private Connection conn = null;
+
     @Before
     public void setUp() throws Exception {
+        conn = ConnectionFactory.eINSTANCE.createConnection();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        conn = null;
     }
 
     @Test
@@ -59,5 +74,144 @@ public class GenericDragAndDropHandlerTest {
         // when(ComponentsUtils.getAllValuedProperties(mockComponentProperties)).thenReturn(propertyValues);
         //        isGenericRepositoryValue = genericDragAndDropHandler.isGenericRepositoryValue(connection, "QueryMode");//$NON-NLS-1$
         // assertEquals(true, isGenericRepositoryValue);
+    }
+    
+    @Test
+    public void testGetPassword1() {
+        String pwd = GenericDragAndDropHandler.getPassword(conn, "TestPassword");
+        assertEquals("\"TestPassword\"", pwd); //$NON-NLS-1$
+    }
+
+    @Test
+    public void testGetPassword2() {
+        String pwd = GenericDragAndDropHandler.getPassword(conn, "\"TestPassword\"");
+        assertEquals("\"\\\"TestPassword\\\"\"", pwd); //$NON-NLS-1$
+    }
+
+    @Test
+    public void testGetPassword3() {
+        String pwd = GenericDragAndDropHandler.getPassword(conn, "\"\"TestPassword\"\"");
+        assertEquals("\"\\\"\\\"TestPassword\\\"\\\"\"", pwd); //$NON-NLS-1$
+    }
+
+    @Test
+    public void testGetPassword4() {
+        String pwd = GenericDragAndDropHandler.getPassword(conn, "\"TestPassword");
+        assertEquals("\"\\\"TestPassword\"", pwd); //$NON-NLS-1$
+    }
+
+    @Test
+    public void testGetPassword5() {
+        String pwd = GenericDragAndDropHandler.getPassword(conn, "TestPassword\"");
+        assertEquals("\"TestPassword\\\"\"", pwd); //$NON-NLS-1$
+    }
+
+    @Test
+    public void testGetPassword6() {
+        conn.setContextMode(true);
+        String pwd = GenericDragAndDropHandler.getPassword(conn, "context.pwd");
+        conn.setContextMode(false);
+        assertEquals("context.pwd", pwd); //$NON-NLS-1$
+    }
+
+    @Test
+    public void testGetValueOfJDBCMappingNULL() {
+        List<ComponentProperties> componentProperties = new ArrayList<>();
+        JDBCConnectionWizardProperties properties = setupJDBCProperties();
+        //
+        componentProperties.add(properties);
+
+        DatabaseConnection dbConnection = ConnectionFactoryImpl.eINSTANCE.createDatabaseConnection();
+
+        GenericDragAndDropHandler handler = new GenericDragAndDropHandler();
+        Object returnValue = handler.getGenericRepositoryValue(dbConnection, componentProperties,
+                EConnectionParameterName.GENERIC_MAPPING_FILE.getDisplayName(), null);
+        assertEquals("\"\"", returnValue);//$NON-NLS-1$
+    }
+
+    @Test
+    public void testGetValueOfJDBCMapping() {
+        List<ComponentProperties> componentProperties = new ArrayList<>();
+        JDBCConnectionWizardProperties properties = setupJDBCProperties();
+        //
+        properties.mappingFile.setStoredValue("snowflake_id");//$NON-NLS-1$
+        componentProperties.add(properties);
+
+        DatabaseConnection dbConnection = ConnectionFactoryImpl.eINSTANCE.createDatabaseConnection();
+
+        GenericDragAndDropHandler handler = new GenericDragAndDropHandler();
+        Object returnValue = handler.getGenericRepositoryValue(dbConnection, componentProperties,
+                EConnectionParameterName.GENERIC_MAPPING_FILE.getDisplayName(),
+                null);
+        assertEquals("snowflake_id", returnValue);//$NON-NLS-1$
+    }
+
+    @Test
+    public void testGetValueOfJDBCMappingWithQuotes() {
+        List<ComponentProperties> componentProperties = new ArrayList<>();
+        JDBCConnectionWizardProperties properties = setupJDBCProperties();
+        //
+        properties.mappingFile.setStoredValue("\"snowflake_id\"");//$NON-NLS-1$
+        componentProperties.add(properties);
+
+        DatabaseConnection dbConnection = ConnectionFactoryImpl.eINSTANCE.createDatabaseConnection();
+
+        GenericDragAndDropHandler handler = new GenericDragAndDropHandler();
+        Object returnValue = handler.getGenericRepositoryValue(dbConnection, componentProperties,
+                EConnectionParameterName.GENERIC_MAPPING_FILE.getDisplayName(), null);
+        assertEquals("\"snowflake_id\"", returnValue);
+    }
+
+    @Test
+    public void testGetValueOfJDBCDriverClass() {
+        List<ComponentProperties> componentProperties = new ArrayList<>();
+        JDBCConnectionWizardProperties properties = setupJDBCProperties();
+        //
+        properties.connection.driverClass.setStoredValue("org.h2.Driver");//$NON-NLS-1$
+        componentProperties.add(properties);
+
+        DatabaseConnection dbConnection = ConnectionFactoryImpl.eINSTANCE.createDatabaseConnection();
+
+        GenericDragAndDropHandler handler = new GenericDragAndDropHandler();
+        Object returnValue = handler.getGenericRepositoryValue(dbConnection, componentProperties,
+                EConnectionParameterName.GENERIC_DRIVER_CLASS.getDisplayName(), null);
+        assertEquals("\"org.h2.Driver\"", returnValue);//$NON-NLS-1$
+    }
+
+    @Test
+    public void testGetValueOfJDBCUserName() {
+        List<ComponentProperties> componentProperties = new ArrayList<>();
+        JDBCConnectionWizardProperties properties = setupJDBCProperties();
+        //
+        properties.connection.userPassword.userId.setStoredValue("UserTestA");//$NON-NLS-1$
+        componentProperties.add(properties);
+
+        DatabaseConnection dbConnection = ConnectionFactoryImpl.eINSTANCE.createDatabaseConnection();
+
+        GenericDragAndDropHandler handler = new GenericDragAndDropHandler();
+        Object returnValue = handler.getGenericRepositoryValue(dbConnection, componentProperties,
+                EConnectionParameterName.USERNAME.getName(), null);
+        assertEquals("\"UserTestA\"", returnValue);//$NON-NLS-1$
+    }
+
+    @Test
+    public void testGetValueOfJDBCPasswordNULL() {
+        List<ComponentProperties> componentProperties = new ArrayList<>();
+        JDBCConnectionWizardProperties properties = setupJDBCProperties();
+        //
+        componentProperties.add(properties);
+
+        DatabaseConnection dbConnection = ConnectionFactoryImpl.eINSTANCE.createDatabaseConnection();
+
+        GenericDragAndDropHandler handler = new GenericDragAndDropHandler();
+        Object returnValue = handler.getGenericRepositoryValue(dbConnection, componentProperties,
+                EConnectionParameterName.PASSWORD.getName(), null);
+        assertEquals("\"\"", returnValue);//$NON-NLS-1$
+    }
+
+    private JDBCConnectionWizardProperties setupJDBCProperties() {
+        JDBCConnectionWizardProperties jdbcP = new JDBCConnectionWizardProperties("test");
+        jdbcP.init();
+        return jdbcP;
     }
 }

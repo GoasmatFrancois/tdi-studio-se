@@ -49,7 +49,23 @@ for (IConnection conn : conns) {
 				%>
 					jsonRow<%=cid%>.put("<%=column.getLabel()%>", String.valueOf(<%=conn.getName()%>.<%=column.getLabel()%>));
 				<%
-				}else{
+				}
+				// add dynamic schema support here
+				else if("id_Dynamic".equals(column.getTalendType())) {%>
+					Dynamic col_<%=cid%> = <%=conn.getName()%>.<%=column.getLabel()%>;
+					for (int i_<%=cid%> = 0; i_<%=cid%> < col_<%=cid%>.getColumnCount(); i_<%=cid%>++) {
+						DynamicMetadata metadata_<%=cid%> = col_<%=cid%>.getColumnMetadata(i_<%=cid%>);
+						Object val_<%=cid%> = col_<%=cid%>.getColumnValue(i_<%=cid%>);
+						if (metadata_<%=cid%> != null && val_<%=cid%> != null) {
+							if (val_<%=cid%> instanceof Date) {
+								val_<%=cid%> = FormatterUtils.format_Date((Date)val_<%=cid%>, metadata_<%=cid%>.getFormat());
+							}
+							jsonRow<%=cid%>.put(metadata_<%=cid%>.getName(),val_<%=cid%>);
+						}
+					}
+				<%
+				} //end of add dynamic support here  (this assumes dynamic datatype does not contain nested dynamic datatype fields)
+				else {
 				%>
 					jsonRow<%=cid%>.put("<%=column.getLabel()%>", <%=conn.getName()%>.<%=column.getLabel()%>);
 				<%
