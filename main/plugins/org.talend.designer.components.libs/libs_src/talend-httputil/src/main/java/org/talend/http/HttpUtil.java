@@ -1,14 +1,9 @@
 package org.talend.http;
 
-import java.util.List;
+import net.sf.json.JSONObject;
 
 import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.entity.ContentType;
-
-import net.sf.json.JSONObject;
-
-import java.util.ArrayList;
 
 public class HttpUtil {
 	

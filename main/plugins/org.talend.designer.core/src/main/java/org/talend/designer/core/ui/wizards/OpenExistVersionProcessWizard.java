@@ -68,8 +68,8 @@ import org.talend.designer.codegen.ICodeGeneratorService;
 import org.talend.designer.codegen.ISQLPatternSynchronizer;
 import org.talend.designer.codegen.ITalendSynchronizer;
 import org.talend.designer.core.i18n.Messages;
-import org.talend.designer.core.ui.MultiPageTalendEditor;
 import org.talend.designer.core.ui.editor.ProcessEditorInput;
+import org.talend.designer.core.utils.BigDataJobUtil;
 import org.talend.expressionbuilder.ExpressionPersistance;
 import org.talend.repository.ProjectManager;
 import org.talend.repository.model.IProxyRepositoryFactory;
@@ -272,7 +272,9 @@ public class OpenExistVersionProcessWizard extends Wizard {
                     if (editorPart == null) {
                         fileEditorInput.setRepositoryNode(node);
                         if (item instanceof ProcessItem) {
-                            page.openEditor(fileEditorInput, MultiPageTalendEditor.ID, readonly);
+                            ERepositoryObjectType itemType = ERepositoryObjectType.getItemType(item);
+                            String editorId = BigDataJobUtil.getEditorId(itemType);
+                            page.openEditor(fileEditorInput, editorId, readonly);
                         } else if (item instanceof BusinessProcessItem) {
                             CorePlugin.getDefault().getDiagramModelService().openBusinessDiagramEditor(page, fileEditorInput);
                         } else {
@@ -304,7 +306,11 @@ public class OpenExistVersionProcessWizard extends Wizard {
             throws SystemException {
         if (item instanceof ProcessItem) {
             ProcessItem processItem = (ProcessItem) item;
-            return new ProcessEditorInput(processItem, true, false, readonly);
+            RepositoryEditorInput fileEditorInput = BigDataJobUtil.getProcessItemEditorInput(item, readonly);
+            if (fileEditorInput == null) {
+                fileEditorInput = new ProcessEditorInput(processItem, true, false, readonly);
+            }
+            return fileEditorInput;
         } else if (item instanceof BusinessProcessItem) {
             BusinessProcessItem businessProcessItem = (BusinessProcessItem) item;
             IFile file = CorePlugin.getDefault().getDiagramModelService().getDiagramFileAndUpdateResource(page,
@@ -312,7 +318,7 @@ public class OpenExistVersionProcessWizard extends Wizard {
             return new RepositoryEditorInput(file, businessProcessItem);
         } else if (item instanceof RoutineItem) {
             final RoutineItem routineItem = (RoutineItem) item;
-            final ICodeGeneratorService codeGenService = (ICodeGeneratorService) GlobalServiceRegister.getDefault()
+            final ICodeGeneratorService codeGenService = GlobalServiceRegister.getDefault()
                     .getService(ICodeGeneratorService.class);
             ITalendSynchronizer routineSynchronizer = codeGenService.createRoutineSynchronizer();
             ProxyRepositoryFactory factory = ProxyRepositoryFactory.getInstance();
@@ -330,7 +336,7 @@ public class OpenExistVersionProcessWizard extends Wizard {
             }
         } else if (item instanceof SQLPatternItem) {
             SQLPatternItem patternItem = (SQLPatternItem) item;
-            final ICodeGeneratorService codeGenService = (ICodeGeneratorService) GlobalServiceRegister.getDefault()
+            final ICodeGeneratorService codeGenService = GlobalServiceRegister.getDefault()
                     .getService(ICodeGeneratorService.class);
             ISQLPatternSynchronizer SQLPatternSynchronizer = codeGenService.getSQLPatternSynchronizer();
             SQLPatternSynchronizer.syncSQLPattern(patternItem, true);
@@ -354,7 +360,7 @@ public class OpenExistVersionProcessWizard extends Wizard {
         try {
             if (ProjectManager.getInstance().isInCurrentMainProject(repositoryNode)) {
                 IFile linkedFile = null;
-                IOpenJobScriptActionService openJobScriptActionService = (IOpenJobScriptActionService) GlobalServiceRegister
+                IOpenJobScriptActionService openJobScriptActionService = GlobalServiceRegister
                         .getDefault().getService(IOpenJobScriptActionService.class);
                 if (openJobScriptActionService != null) {
                     linkedFile = openJobScriptActionService.createWorkspaceLink(fsProject,

@@ -208,9 +208,9 @@
         <IMPORT NAME="slf4j-log4j12-1.7.29.jar" MODULE="slf4j-log4j12-1.7.29.jar" MVN="mvn:org.slf4j/slf4j-log4j12/1.7.29" REQUIRED_IF="(USE_SHARED_CONNECTION == 'true' AND SPECIFY_DATASOURCE_ALIAS=='false')" />
         <!--Active directory dependency module: msal4j and transitive -->
         <IMPORT NAME="msal4j" MODULE="msal4j-1.11.0.jar" MVN="mvn:com.microsoft.azure/msal4j/1.11.0"  REQUIRED_IF="(ACTIVE_DIR_AUTH == 'true') AND (DRIVER=='MSSQL_PROP')" />
-        <IMPORT NAME="jackson-core" MODULE="jackson-core-2.12.1.jar" MVN="mvn:com.fasterxml.jackson.core/jackson-core/2.12.1"  REQUIRED_IF="(ACTIVE_DIR_AUTH == 'true') AND (DRIVER=='MSSQL_PROP')" />
-        <IMPORT NAME="jackson-databind" MODULE="jackson-databind-2.12.1.jar" MVN="mvn:com.fasterxml.jackson.core/jackson-databind/2.12.1"  REQUIRED_IF="(ACTIVE_DIR_AUTH == 'true') AND (DRIVER=='MSSQL_PROP')" />
-        <IMPORT NAME="jackson-annotations" MODULE="jackson-annotations-2.12.1.jar" MVN="mvn:com.fasterxml.jackson.core/jackson-annotations/2.12.1"  REQUIRED_IF="(ACTIVE_DIR_AUTH == 'true') AND (DRIVER=='MSSQL_PROP')" />
+        <IMPORT NAME="jackson-core" MODULE="jackson-core-2.13.2.jar" MVN="mvn:com.fasterxml.jackson.core/jackson-core/2.13.2"  REQUIRED_IF="(ACTIVE_DIR_AUTH == 'true') AND (DRIVER=='MSSQL_PROP')" />
+        <IMPORT NAME="jackson-databind" MODULE="jackson-databind-2.13.2.2.jar" MVN="mvn:com.fasterxml.jackson.core/jackson-databind/2.13.2.2"  REQUIRED_IF="(ACTIVE_DIR_AUTH == 'true') AND (DRIVER=='MSSQL_PROP')" />
+        <IMPORT NAME="jackson-annotations" MODULE="jackson-annotations-2.13.2.jar" MVN="mvn:com.fasterxml.jackson.core/jackson-annotations/2.13.2"  REQUIRED_IF="(ACTIVE_DIR_AUTH == 'true') AND (DRIVER=='MSSQL_PROP')" />
         <IMPORT NAME="oauth2-oidc-sdk" MODULE="oauth2-oidc-sdk-9.7.jar" MVN="mvn:com.nimbusds/oauth2-oidc-sdk/9.7"  REQUIRED_IF="(ACTIVE_DIR_AUTH == 'true') AND (DRIVER=='MSSQL_PROP')" />
         <IMPORT NAME="jcip-annotations" MODULE="jcip-annotations-1.0-1.jar" MVN="mvn:com.github.stephenc.jcip/jcip-annotations/1.0-1"  REQUIRED_IF="(ACTIVE_DIR_AUTH == 'true') AND (DRIVER=='MSSQL_PROP')" />
         <IMPORT NAME="json-smart" MODULE="json-smart-2.4.7.jar" MVN="mvn:net.minidev/json-smart/2.4.7"  REQUIRED_IF="(ACTIVE_DIR_AUTH == 'true') AND (DRIVER=='MSSQL_PROP')" />

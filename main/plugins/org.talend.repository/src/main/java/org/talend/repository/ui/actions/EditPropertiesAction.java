@@ -174,7 +174,7 @@ public class EditPropertiesAction extends AContextualAction {
                 ConnectionItem connectionItem = (ConnectionItem) node.getObject().getProperty().getItem();
                 RepositoryUpdateManager.updateServices(connectionItem);
                 if (GlobalServiceRegister.getDefault().isServiceRegistered(IESBService.class)) {
-                    IESBService service = (IESBService) GlobalServiceRegister.getDefault().getService(IESBService.class);
+                    IESBService service = GlobalServiceRegister.getDefault().getService(IESBService.class);
                     if (service != null) {
                         service.refreshComponentView(connectionItem);
                     }
@@ -211,7 +211,7 @@ public class EditPropertiesAction extends AContextualAction {
 
     private static boolean isInstanceofCamelBeans(final ERepositoryObjectType type) {
         if (GlobalServiceRegister.getDefault().isServiceRegistered(ICamelDesignerCoreService.class)) {
-            ICamelDesignerCoreService service = (ICamelDesignerCoreService) GlobalServiceRegister.getDefault().getService(
+            ICamelDesignerCoreService service = GlobalServiceRegister.getDefault().getService(
                     ICamelDesignerCoreService.class);
             if (service != null) {
                 return type == service.getBeansType();
@@ -419,7 +419,11 @@ public class EditPropertiesAction extends AContextualAction {
                 IRepositoryNode node = (IRepositoryNode) o;
                 switch (node.getType()) {
                 case REPOSITORY_ELEMENT:
-                    if (node.getObjectType() == ERepositoryObjectType.PROCESS) {
+                    if (node.getObjectType() == ERepositoryObjectType.PROCESS
+                            || node.getObjectType() == ERepositoryObjectType.PROCESS_MR
+                            || node.getObjectType() == ERepositoryObjectType.PROCESS_SPARK
+                            || node.getObjectType() == ERepositoryObjectType.PROCESS_STORM
+                            || node.getObjectType() == ERepositoryObjectType.PROCESS_SPARKSTREAMING) {
                         canWork = true;
                     } else if (node.getObjectType() == ERepositoryObjectType.ROUTINES) {
                         Item item = node.getObject().getProperty().getItem();

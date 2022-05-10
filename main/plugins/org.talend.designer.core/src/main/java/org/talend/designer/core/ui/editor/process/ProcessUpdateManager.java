@@ -1980,6 +1980,7 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
                                 }
                             }
                         }
+                        IElementParameter useStrParam = node.getElementParameter("USE_STRING_PROPERTIES");
                         // if the repository connection exists then test the values
                         for (IElementParameter param : node.getElementParameters()) {
                             if (needBuildIn) {
@@ -1998,6 +1999,8 @@ public class ProcessUpdateManager extends AbstractUpdateManager {
                             String repositoryValue = getReposiotryValueForOldJDBC(node, repositoryConnection, param);
                             String relatedComponent = node.getComponent().getName();
                             if ((repositoryValue != null) && (param.isShow(node.getElementParameters())
+                                    || useStrParam != null && ("PROPERTIES_STRING".equals(repositoryValue)
+                                            || "ENTRY_PROPERTIES".equals(repositoryValue))
                                     || (node instanceof INode
                                             && ((INode) node).getComponent().getName().equals("tESBProviderRequest"))
                                     || (node instanceof INode

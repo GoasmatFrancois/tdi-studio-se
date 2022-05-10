@@ -3734,6 +3734,24 @@
               version="8.0.1">
 
         </projecttask>
+        <projecttask
+              beforeLogon="false"
+              breaks="8.0.0"
+              class="org.talend.repository.model.migration.AddUseScientificNotationCheckboxTWriteJSONField"
+              description="Add checkbox to use scientific notation with float values for existing tWriteJSONField components"
+              id="org.talend.repository.model.migration.AddUseScientificNotationCheckboxTWriteJSONField"
+              name="AddUseScientificNotationCheckboxTWriteJSONField"
+              version="8.0.1">
+        </projecttask>
+        <projecttask
+               beforeLogon="false"
+               breaks="8.0.0"
+               class="org.talend.repository.model.migration.SetKeystoreKafkaMigrationTask"
+               description="Add set keystore checkbox for Kafka components"
+               id="org.talend.repository.model.migration.SetKeystoreKafkaMigrationTask"
+               name="SetKeystoreKafkaMigrationTask"
+               version="8.0.1">
+        </projecttask>
    </extension>
 
    <extension

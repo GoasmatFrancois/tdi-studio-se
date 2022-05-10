@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.talend.components</groupId>
 	<artifactId>talend-mscrm</artifactId>
-	<version>3.12-20220304</version>
+	<version>3.12-20220510</version>
 	<packaging>jar</packaging>
 
 	<name>talend-mscrm</name>
@@ -27,7 +27,8 @@
 		<httpcore.version>4.4.13</httpcore.version>
 		<junit.version>4.13.2</junit.version>
 		<adal4j.version>1.6.4-20211021</adal4j.version>
-		<jackson.version>2.11.4</jackson.version>
+		<jackson.version>2.13.2</jackson.version>
+		<jackson-databind.version>2.13.2.2</jackson-databind.version>
 
 		<!-- plugin's versions -->
 		<maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
@@ -151,7 +152,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
+            <version>${jackson-databind.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

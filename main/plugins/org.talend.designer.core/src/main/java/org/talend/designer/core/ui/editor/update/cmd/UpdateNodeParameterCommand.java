@@ -298,6 +298,7 @@ public class UpdateNodeParameterCommand extends Command {
 
                 // upgrade from repository
                 if (result.isChecked() && connectionItem != null) {
+                    IElementParameter useStrParam = node.getElementParameter("USE_STRING_PROPERTIES");
                     List<? extends IElementParameter> elemParameters = new ArrayList<>(node.getElementParameters());
                     for (IElementParameter param : elemParameters) {
                         String repositoryValue = getReposiotryValueForOldJDBC(node, connectionItem.getConnection(), param);
@@ -312,6 +313,8 @@ public class UpdateNodeParameterCommand extends Command {
                         if ((repositoryValue != null)
                                 && (param.isShow(node.getElementParameters())
                                         || node.getComponentProperties() != null
+                                        || useStrParam != null && ("PROPERTIES_STRING".equals(repositoryValue)
+                                                || "ENTRY_PROPERTIES".equals(repositoryValue))
                                         || (node instanceof INode && ((INode) node).getComponent().getName()
                                                 .equals("tAdvancedFileOutputXML")) || (node instanceof INode && ((INode) node)
                                         .getComponent().getName().equals("tESBProviderRequest")))) { //$NON-NLS-1$

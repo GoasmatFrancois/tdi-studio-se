@@ -29,6 +29,7 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.talend.commons.ui.runtime.image.ECoreImage;
 import org.talend.commons.ui.runtime.image.ImageProvider;
 import org.talend.commons.ui.runtime.image.ImageUtils.ICON_SIZE;
+import org.talend.commons.utils.PasswordEncryptUtil;
 import org.talend.core.GlobalServiceRegister;
 import org.talend.core.language.ECodeLanguage;
 import org.talend.core.language.LanguageManager;
@@ -95,7 +96,7 @@ public class TalendCompletionProposalComputer implements IJavaCompletionProposal
                         } else {
                             // test each component label.
 
-                            IDesignerCoreService service = (IDesignerCoreService) GlobalServiceRegister.getDefault().getService(
+                            IDesignerCoreService service = GlobalServiceRegister.getDefault().getService(
                                     IDesignerCoreService.class);
 
                             IProcess process = service.getCurrentProcess();
@@ -135,7 +136,7 @@ public class TalendCompletionProposalComputer implements IJavaCompletionProposal
      */
     public List computeCompletionProposals(ITextViewer textViewer, String prefix, int offset, IProgressMonitor monitor) {
         List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
-        IDesignerCoreService service = (IDesignerCoreService) GlobalServiceRegister.getDefault().getService(
+        IDesignerCoreService service = GlobalServiceRegister.getDefault().getService(
                 IDesignerCoreService.class);
         IProcess process = service.getCurrentProcess();
 
@@ -232,6 +233,11 @@ public class TalendCompletionProposalComputer implements IJavaCompletionProposal
         } else {
             desc = Messages.getString("ContextParameterProposal.NoCommentAvaiable"); //$NON-NLS-1$
         }
+        String type = contextParameter.getType();
+        String value = contextParameter.getValue();
+        if (PasswordEncryptUtil.isPasswordType(type)) {
+            value = "******"; //$NON-NLS-1$
+        }
 
         String message = "<b>" + display + "</b><br><br>" //$NON-NLS-1$ //$NON-NLS-2$
                 + Messages.getString("ContextParameterProposal.Description.v1") + "<br>"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -240,8 +246,7 @@ public class TalendCompletionProposalComputer implements IJavaCompletionProposal
         message += Messages.getString("ContextParameterProposal.VariableName.v1"); //$NON-NLS-1$
 
         MessageFormat format = new MessageFormat(message);
-        Object[] args = new Object[] { desc, contextParameter.getContext().getName(), contextParameter.getType(),
-                contextParameter.getValue() };
+        Object[] args = new Object[] { desc, contextParameter.getContext().getName(), type, value };
         return format.format(args);
     }
 
