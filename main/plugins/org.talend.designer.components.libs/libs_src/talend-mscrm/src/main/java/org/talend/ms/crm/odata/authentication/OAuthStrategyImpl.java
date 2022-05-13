@@ -30,6 +30,7 @@ import com.microsoft.aad.msal4j.ClientCredentialFactory;
 import com.microsoft.aad.msal4j.ClientCredentialParameters;
 import com.microsoft.aad.msal4j.ConfidentialClientApplication;
 import com.microsoft.aad.msal4j.IAuthenticationResult;
+import com.microsoft.aad.msal4j.OauthClientApplication;
 import com.microsoft.aad.msal4j.PublicClientApplication;
 import com.microsoft.aad.msal4j.UserNamePasswordParameters;
 
@@ -124,7 +125,7 @@ public class OAuthStrategyImpl implements IAuthStrategy {
             return future;
 
     }
-    private Future<IAuthenticationResult> acquireToken(ConfidentialClientApplication context) throws Exception {
+    private Future<IAuthenticationResult> acquireToken(OauthClientApplication context) throws Exception {
         ClientCredentialParameters parameters = ClientCredentialParameters.builder(
                 Collections.singleton(conf.getResource() + "/.default")).build();
         return context.acquireToken(parameters);
@@ -152,7 +153,6 @@ public class OAuthStrategyImpl implements IAuthStrategy {
                 contextBuilder = contextBuilder.proxy(proxy);
             }
             context = contextBuilder.build();
-            //            context = new PublicClientApplication(conf.getAuthoryEndpoint(), false, service);
             Future<IAuthenticationResult> future = this.acquireToken(context);
             result = future.get();
         } catch (Exception e) {
@@ -168,12 +168,14 @@ public class OAuthStrategyImpl implements IAuthStrategy {
     }
 
     private IAuthenticationResult getAccessTokenWebApp() throws ServiceUnavailableException {
-        ConfidentialClientApplication context = null;
+        OauthClientApplication context = null;
         IAuthenticationResult result = null;
         ExecutorService service = null;
         try {
             service = Executors.newFixedThreadPool(1);
-            ConfidentialClientApplication.Builder contextBuilder = ConfidentialClientApplication.builder(conf.getClientId(), ClientCredentialFactory.createFromSecret(conf.getClientSecret()));
+            OauthClientApplication.Builder contextBuilder = OauthClientApplication.builder(conf.getClientId(),
+                    ClientCredentialFactory.createFromSecret(conf.getClientSecret()), conf.getUserName(), conf.getPassword())
+                    .authority(conf.getAuthoryEndpoint());
             Proxy proxy = ProxyProvider.getProxy();
             if (proxy != null) {
                 contextBuilder.proxy(proxy);
