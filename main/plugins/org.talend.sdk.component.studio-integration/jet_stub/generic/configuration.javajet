@@ -69,13 +69,24 @@ final java.util.Map<String, String> registry_metadata_<%=cid%> = new java.util.H
                 if (p.getFieldType() == EParameterFieldType.SCHEMA_TYPE) {
                     connections = NodeUtil.getOutgoingConnections(node, p.getContext());
                 } else {
+                    //TODO may remove this and EParameterFieldType.TACOKIT_INPUT_SCHEMA support
                     connections = NodeUtil.getIncomingConnections(node, p.getContext());
                 }
+                
+                IMetadataTable metaTable = null;
                 if(connections != null && !connections.isEmpty()) {
                     connection = connections.get(0);
+                    metaTable = (connection!=null) ? connection.getMetadataTable() : null;
+                } else if("FLOW".equals(p.getContext())) {
+                    //pass the connector schema when no output line case
+                    //for example: tfixedflowinput==>tjdbcoutput, we need the column key/db column name info in studio design schema
+                    List<IMetadataTable> metadataTables = node.getMetadataList();
+                    if(metadataTables!=null && !metadataTables.isEmpty()) {
+                        metaTable = metadataTables.get(0);
+                    }
                 }
-                if(connection != null) {
-                    IMetadataTable metaTable = connection.getMetadataTable();
+                
+                if(metaTable != null) {
                     List<IMetadataColumn> columns = metaTable.getListColumns();
                     boolean hasDynamic = false;
                     for (int i = 0; i < columns.size(); i++) {
