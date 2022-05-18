@@ -59,6 +59,11 @@
 	boolean isLog4j2Enabled = ("true").equals(ElementParameterParser.getValue(process, "__LOG4J2_ACTIVATE__"));//log4j2 enable
 	boolean isLog4j1Enabled = !isLog4j2Enabled;//log4j1 enable
 
+    String MDC_PACKAGE_PREFIX = "org.slf4j.";
+    if(isLog4j1Enabled){
+        MDC_PACKAGE_PREFIX = "org.apache.log4j.";
+    }
+
     boolean exist_tParallelize = false;
     List<? extends INode> tParallelizeList = process.getNodesOfType("tParallelize");
     if(tParallelizeList != null && tParallelizeList.size() > 0){
@@ -515,7 +520,28 @@
 				org.apache.logging.log4j.core.config.Configurator.setLevel(org.apache.logging.log4j.LogManager.getRootLogger().getName(), log.getLevel());
 				<%}%>
 			}
-			log.info("TalendJob: '<%=codeGenArgument.getJobName()%>' - Start.");
+
+            <%=MDC_PACKAGE_PREFIX%>MDC.put("_pid", pid);
+            <%=MDC_PACKAGE_PREFIX%>MDC.put("_rootPid", rootPid);
+            <%=MDC_PACKAGE_PREFIX%>MDC.put("_fatherPid", fatherPid);
+            <%=MDC_PACKAGE_PREFIX%>MDC.put("_projectName", projectName);
+            <%=MDC_PACKAGE_PREFIX%>MDC.put("_jobName", jobName);
+            <%=MDC_PACKAGE_PREFIX%>MDC.put("_jobVersion", jobVersion);
+            <%=MDC_PACKAGE_PREFIX%>MDC.put("_startTimestamp",java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC ).format( java.time.format.DateTimeFormatter.ISO_INSTANT ));
+            <%=MDC_PACKAGE_PREFIX%>MDC.put("_jobRepositoryId","<%=process.getId() %>");
+            <%=MDC_PACKAGE_PREFIX%>MDC.put("_compiledAtTimestamp","<%=java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC ).format( java.time.format.DateTimeFormatter.ISO_INSTANT )%>");
+
+            {
+                java.lang.management.RuntimeMXBean mx = java.lang.management.ManagementFactory.getRuntimeMXBean();
+                String[] mxNameTable = mx.getName().split("@"); //$NON-NLS-1$
+                if (mxNameTable.length == 2) {
+                    <%=MDC_PACKAGE_PREFIX%>MDC.put("_systemPid", mxNameTable[0]);
+                } else {
+                    <%=MDC_PACKAGE_PREFIX%>MDC.put("_systemPid", String.valueOf(java.lang.Thread.currentThread().getId()));
+                }
+            }
+
+            log.debug("TalendJob: '<%=codeGenArgument.getJobName()%>' - Start.");
 		<%}%>
 		
 		<%
@@ -642,11 +668,23 @@
             pid = TalendString.getAsciiRandomString(6);
         }
 
+        <%if(isLog4jEnabled) {%>
+            <%=MDC_PACKAGE_PREFIX%>MDC.put("_pid", pid);
+        <%}%>
+
         if (rootPid==null) {
             rootPid = pid;
         }
+
+        <%if(isLog4jEnabled) {%>
+            <%=MDC_PACKAGE_PREFIX%>MDC.put("_rootPid", rootPid);
+        <%}%>
+
         if (fatherPid==null) {
             fatherPid = pid;
+            <%if(isLog4jEnabled) {%>
+                <%=MDC_PACKAGE_PREFIX%>MDC.put("_fatherPid", fatherPid);
+            <%}%>
         }else{
             isChildJob = true;
         }
@@ -884,6 +922,11 @@
 %>
         //Resume: jobStart
         resumeUtil.addLog("JOB_STARTED", "JOB:" + jobName, parent_part_launcher, Thread.currentThread().getId() + "", "","","","",resumeUtil.convertToJsonText(context,parametersToEncrypt));
+
+        <%if(isLog4jEnabled) {%>
+            <%=MDC_PACKAGE_PREFIX%>MDC.put("_context", contextStr);
+            log.info("TalendJob: '<%=codeGenArgument.getJobName()%>' - Started.");
+        <%}%>
 
 <%
         if (stats) {
@@ -1292,6 +1335,20 @@ if (execStat) {
          returnCode = errorCode.intValue();
     }
     resumeUtil.addLog("JOB_ENDED", "JOB:" + jobName, parent_part_launcher, Thread.currentThread().getId() + "", "","" + returnCode,"","","");
+
+    <%if(isLog4jEnabled) {%>
+        <%=MDC_PACKAGE_PREFIX%>MDC.put("_jobName", jobName);
+        <%=MDC_PACKAGE_PREFIX%>MDC.put("_jobVersion", jobVersion);
+        <%=MDC_PACKAGE_PREFIX%>MDC.put("_pid", pid);
+        <%=MDC_PACKAGE_PREFIX%>MDC.put("_rootPid", rootPid);
+        <%=MDC_PACKAGE_PREFIX%>MDC.put("_fatherPid", fatherPid);
+        <%=MDC_PACKAGE_PREFIX%>MDC.put("_jobRepositoryId","<%=process.getId() %>");
+
+        <%=MDC_PACKAGE_PREFIX%>MDC.remove("_subJobName");
+        <%=MDC_PACKAGE_PREFIX%>MDC.remove("_subJobPid");
+        <%=MDC_PACKAGE_PREFIX%>MDC.remove("_systemPid");
+        log.info("TalendJob: '<%=codeGenArgument.getJobName()%>' - Finished - status: " + status + " returnCode: " + returnCode );
+    <%}%>
 
     return returnCode;
 

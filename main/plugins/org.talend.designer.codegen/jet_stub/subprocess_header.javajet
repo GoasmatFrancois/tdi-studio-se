@@ -32,6 +32,12 @@
 	boolean stat = codeGenArgument.isStatistics();
 	boolean containsTPartitioner = subTree.getRootNode().getProcess().getNodesOfType("tPartitioner").size() > 0 ? true : false;
     boolean isLog4jEnabled = ("true").equals(ElementParameterParser.getValue(subTree.getRootNode().getProcess(), "__LOG4J_ACTIVATE__"));
+    boolean isLog4j2Enabled = ("true").equals(ElementParameterParser.getValue(subTree.getRootNode().getProcess(), "__LOG4J2_ACTIVATE__"));//log4j2 enable
+    boolean isLog4j1Enabled = !isLog4j2Enabled;//log4j1 enable
+    String MDC_PACKAGE_PREFIX = "org.slf4j.";
+    if(isLog4j1Enabled){
+        MDC_PACKAGE_PREFIX = "org.apache.log4j.";
+    }
 %>
 
 <%
@@ -1602,7 +1608,12 @@ public static class <%=conn.getName() %>Struct<%=templateOrigin %> implements ro
 public void <%=subTree.getName() %>Process(final java.util.Map<String, Object> globalMap) throws TalendException {
 	globalMap.put("<%=subTree.getName() %>_SUBPROCESS_STATE", 0);
 
- final boolean execStat = this.execStat;
+	<%if(isLog4jEnabled) {%>
+		<%=MDC_PACKAGE_PREFIX%>MDC.put("_subJobName", "<%=subTree.getName() %>");
+		<%=MDC_PACKAGE_PREFIX%>MDC.put("_subJobPid", TalendString.getAsciiRandomString(6));
+	<%}%>
+
+	final boolean execStat = this.execStat;
 <%
 	boolean isParallelize = false;
 	for (INode node : subTree.getNodes()) {
