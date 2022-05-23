@@ -18,7 +18,6 @@ import static com.microsoft.aad.msal4j.ParameterValidationUtils.validateNotNull;
 
 public class OauthClientApplication extends AbstractClientApplicationBase implements IConfidentialClientApplication {
 
-
     private ClientAuthentication clientAuthentication;
     private CustomJWTAuthentication customJWTAuthentication;
     private boolean clientCertAuthentication = false;
@@ -26,21 +25,6 @@ public class OauthClientApplication extends AbstractClientApplicationBase implem
     private boolean sendX5c;
     private final String username;
     private final String password;
-
-
-    @Override public CompletableFuture<IAuthenticationResult> acquireToken(ClientCredentialParameters parameters) {
-        validateNotNull("parameters", parameters);
-
-        RequestContext context = new RequestContext(this, PublicApi.ACQUIRE_TOKEN_FOR_CLIENT, parameters);
-        OauthCredentialRequest clientCredentialRequest = new OauthCredentialRequest(parameters,
-                username, password,this, context);
-        new OAuthAuthorizationGrant(null, null);
-        return this.executeRequest(clientCredentialRequest);
-    }
-
-    @Override public CompletableFuture<IAuthenticationResult> acquireToken(OnBehalfOfParameters parameters) {
-        throw new IllegalStateException("Use ConfidentialClientApplication instead");
-    }
 
     private OauthClientApplication(OauthClientApplication.Builder builder) {
         super(builder);
@@ -51,6 +35,22 @@ public class OauthClientApplication extends AbstractClientApplicationBase implem
         initClientAuthentication(builder.clientCredential);
         this.username = builder.username;
         this.password = builder.password;
+    }
+
+    @Override
+    public CompletableFuture<IAuthenticationResult> acquireToken(ClientCredentialParameters parameters) {
+        validateNotNull("parameters", parameters);
+
+        RequestContext context = new RequestContext(this, PublicApi.ACQUIRE_TOKEN_FOR_CLIENT, parameters);
+        OauthCredentialRequest clientCredentialRequest = new OauthCredentialRequest(parameters,
+                username, password,this, context);
+
+        return this.executeRequest(clientCredentialRequest);
+    }
+
+    @Override
+    public CompletableFuture<IAuthenticationResult> acquireToken(OnBehalfOfParameters parameters) {
+        throw new IllegalStateException("Use ConfidentialClientApplication instead");
     }
 
     private void initClientAuthentication(IClientCredential clientCredential) {
