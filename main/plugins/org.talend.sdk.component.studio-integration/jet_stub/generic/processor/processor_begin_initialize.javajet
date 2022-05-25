@@ -57,6 +57,8 @@
     final org.talend.sdk.component.runtime.output.Processor processorImpl_<%=cid%> = mgr_<%=cid%>.findProcessor("<%=family%>", "<%=originalName%>", <%=version%>, configuration_<%=cid%>)
                                                                                  .orElseThrow(() -> new IllegalArgumentException("Can't find <%=family%>#<%=originalName%>"));
     
+    org.talend.sdk.component.runtime.di.studio.RuntimeContextInjector.injectLifecycle(processorImpl_<%=cid%>, globalMap);
+    
     <%
     boolean useExistedConnection = "true".equals(ElementParameterParser.getValue(node,"__USE_EXISTING_CONNECTION__"));
     String connection = ElementParameterParser.getValue(node,"__CONNECTION__");

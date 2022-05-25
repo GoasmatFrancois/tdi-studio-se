@@ -48,6 +48,8 @@ if (mgr_<%=cid%>.getContainer().findAll().isEmpty()) {
     mgr_<%=cid%>.autoDiscoverPlugins(false, true);
 }
 
+org.talend.sdk.component.runtime.di.studio.RuntimeContextInjector.injectService(mgr_<%=cid%>, "<%=plugin%>", globalMap);
+
 <%@include file="../configuration.javajet"%>
 
 mgr_<%=cid%>.findPlugin("<%=plugin%>")

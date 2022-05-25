@@ -52,6 +52,8 @@ if (mgr_<%=cid%>.getContainer().findAll().isEmpty()) {
 final org.talend.sdk.component.runtime.standalone.DriverRunner standalone_<%=cid%> = mgr_<%=cid%>.findDriverRunner("<%=family%>", "<%=originalName%>", <%=version%>, configuration_<%=cid%>)
     .orElseThrow(() -> new IllegalArgumentException("Can't find <%=family%>#<%=originalName%>"));
 
+org.talend.sdk.component.runtime.di.studio.RuntimeContextInjector.injectLifecycle(standalone_<%=cid%>, globalMap);
+
 <%
 boolean useExistedConnection = "true".equals(ElementParameterParser.getValue(node,"__USE_EXISTING_CONNECTION__"));
 String connection = ElementParameterParser.getValue(node,"__CONNECTION__");
