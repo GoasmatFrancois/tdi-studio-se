@@ -13,9 +13,10 @@ imports="
 
 	class DBRowBeginUtil extends DefaultDBRowUtil{
 
-					int driveVersion;
-        			Boolean useStringProperties ;
-        			String logLevel;
+        int driveVersion;
+        Boolean useStringProperties;
+        String logLevel;
+        String jdbcUrl;
 	
 		public void beforeComponentProcess(INode node){
 			super.beforeComponentProcess(node);
@@ -23,8 +24,8 @@ imports="
 	    }
 	    
 		public void setURL(INode node) {
-			String jdbcUrl = ElementParameterParser.getValue(node, "__JDBC_URL__");
-			driveVersion = "DRIVER_V2".equals(ElementParameterParser.getValue(node, "__DRIVER_VERSION__"))? 2 : 1;
+            jdbcUrl = ElementParameterParser.getValue(node, "__JDBC_URL__");
+            driveVersion = "DRIVER_V2".equals(ElementParameterParser.getValue(node, "__DRIVER_VERSION__"))? 2 : 1;
             useStringProperties = "true".equals(ElementParameterParser.getValue(node, "__USE_STRING_PROPERTIES__"));
 
 %>
@@ -60,7 +61,21 @@ imports="
                 %>
                             java.util.Properties properties_<%=cid%> = new java.util.Properties();
                                             properties_<%=cid%>.setProperty("user",dbUser_<%=cid%>);
-                                            properties_<%=cid%>.setProperty("password",dbPwd_<%=cid%>);
+<%
+                                            if ("SSO".equals(jdbcUrl)){
+%>
+                                                if (dbPwd_<%=cid%> != null) {
+<%
+                                            }
+%>
+                                                    properties_<%=cid%>.setProperty("password",dbPwd_<%=cid%>);
+<%
+                                            if ("SSO".equals(jdbcUrl)){
+%>
+                                                }
+<%
+                                            }
+%>
                                             <%
                                             for(Map<String, String> entry : properties){
                                             %>

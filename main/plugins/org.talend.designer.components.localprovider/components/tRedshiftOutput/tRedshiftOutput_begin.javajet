@@ -241,7 +241,21 @@ if(("true").equals(useExistingConn)) {
 
                         java.util.Properties properties_<%=cid%> = new java.util.Properties();
                                         properties_<%=cid%>.setProperty("user",dbUser_<%=cid%>);
-                                        properties_<%=cid%>.setProperty("password",dbPwd_<%=cid%>);
+<%
+                                            if ("SSO".equals(jdbcUrl)){
+%>
+                                                if (dbPwd_<%=cid%> != null) {
+<%
+                                            }
+%>
+                                                    properties_<%=cid%>.setProperty("password",dbPwd_<%=cid%>);
+<%
+                                            if ("SSO".equals(jdbcUrl)){
+%>
+                                                }
+<%
+                                            }
+%>
                                         <%
                                         for(Map<String, String> entry : properties){
                                         %>

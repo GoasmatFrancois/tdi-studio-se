@@ -17,20 +17,21 @@ imports="
 
 	class DBInputBeginUtil extends DefaultDBInputUtil{
 
-				int driveVersion;
-       			Boolean useStringProperties ;
-       			String logLevel;
+        int driveVersion;
+        Boolean useStringProperties;
+        String logLevel;
+        String jdbcUrl;
 
-		public void setURL(INode node) {
-			
-			boolean useLogFile= "true".equals(ElementParameterParser.getValue(node, "__USE_LOG_FILE__"));
-			String logLevel= ElementParameterParser.getValue(node, "__LOG_LEVEL__");
-			String logFile= ElementParameterParser.getValue(node, "__LOG_FILE__");
-			String jdbcUrl = ElementParameterParser.getValue(node, "__JDBC_URL__");
-			driveVersion = "DRIVER_V2".equals(ElementParameterParser.getValue(node, "__DRIVER_VERSION__"))? 2 : 1;
+        public void setURL(INode node) {
+
+            boolean useLogFile= "true".equals(ElementParameterParser.getValue(node, "__USE_LOG_FILE__"));
+            String logLevel= ElementParameterParser.getValue(node, "__LOG_LEVEL__");
+            String logFile= ElementParameterParser.getValue(node, "__LOG_FILE__");
+            jdbcUrl= ElementParameterParser.getValue(node, "__JDBC_URL__");
+            driveVersion = "DRIVER_V2".equals(ElementParameterParser.getValue(node, "__DRIVER_VERSION__"))? 2 : 1;
             useStringProperties = "true".equals(ElementParameterParser.getValue(node, "__USE_STRING_PROPERTIES__"));
             logLevel= ElementParameterParser.getValue(node, "__LOG_LEVEL__");
-			
+
 		if(!logLevel.equals("0")){	
 			if (useLogFile) {
 %>
@@ -92,7 +93,21 @@ imports="
 
                             java.util.Properties properties_<%=cid%> = new java.util.Properties();
                                             properties_<%=cid%>.setProperty("user",dbUser_<%=cid%>);
-                                            properties_<%=cid%>.setProperty("password",dbPwd_<%=cid%>);
+<%
+                                            if ("SSO".equals(jdbcUrl)){
+%>
+                                                if (dbPwd_<%=cid%> != null) {
+<%
+                                            }
+%>
+                                                    properties_<%=cid%>.setProperty("password",dbPwd_<%=cid%>);
+<%
+                                            if ("SSO".equals(jdbcUrl)){
+%>
+                                                }
+<%
+                                            }
+%>
                                             <%
                                             for(Map<String, String> entry : properties){
                                             %>
