@@ -20,12 +20,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.talend.core.model.components.ComponentCategory;
 import org.talend.core.model.components.IComponent;
 import org.talend.core.model.process.BigDataNode;
@@ -46,6 +48,8 @@ import org.talend.sdk.component.server.front.model.ComponentIndex;
 import org.talend.sdk.component.server.front.model.SimplePropertyDefinition;
 import org.talend.sdk.component.studio.i18n.Messages;
 import org.talend.sdk.component.studio.model.action.SuggestionsAction;
+import org.talend.sdk.component.studio.model.parameter.TaCoKitElementParameter;
+import org.talend.sdk.component.studio.model.parameter.TableElementParameter;
 import org.talend.sdk.component.studio.model.parameter.TextElementParameter;
 import org.talend.sdk.component.studio.model.parameter.ValueSelectionParameter;
 
@@ -220,5 +224,46 @@ public class TaCoKitUtilTest {
         Map resultMap = (Map) resultList.get(0);
         assertEquals(resultMap.get("configuration.searchCondition[0].field"), "ga:name");
         assertEquals(resultMap.get("configuration.searchCondition[0].operator"), "List.anyOf");
+    }
+
+    @Test
+    public void testConvertParamValue() {
+        final List<Map<String, Object>> expectedValue = new ArrayList<Map<String, Object>>();
+        final Map<String, Object> row1 = new HashMap<>();
+        row1.put("configuration.dataSet.dataStore.jdbcDriver[].path", "mvn:mysql/mysql-connector-java/8.0.18/jar");
+        row1.put("configuration.dataSet.dataStore.jdbcDriver[].name", "mysql_jdbcDriver1");
+        expectedValue.add(row1);
+        final Map<String, Object> row2 = new HashMap<>();
+        row2.put("configuration.dataSet.dataStore.jdbcDriver[].path", "mvn:mysql/mysql-connector-java/8.0.12/jar");
+        row2.put("configuration.dataSet.dataStore.jdbcDriver[].name", "mysql_jdbcDriver2");
+        expectedValue.add(row2);
+
+        final TableElementParameter table = new TableElementParameter(null, Collections.emptyList());
+        table.setName("configuration.jdbcDriver");
+        table.setFieldType(EParameterFieldType.TABLE);
+        final TaCoKitElementParameter column1 = new TaCoKitElementParameter(null);
+        column1.setFieldType(EParameterFieldType.TEXT);
+        column1.setName("configuration.jdbcDriver[].path");
+        final TaCoKitElementParameter column2 = new TaCoKitElementParameter(null);
+        column2.setFieldType(EParameterFieldType.TEXT);
+        column2.setName("configuration.jdbcDriver[].name");
+        table.setListItemsValue(new Object[] { column1, column2 });
+
+        final List<Object> tableValue = new ArrayList<>();
+        final Map<String, Object> tableRow1 = new HashMap<>();
+        tableRow1.put("path", "mvn:mysql/mysql-connector-java/8.0.18/jar");
+        tableRow1.put("name", "mysql_jdbcDriver1");
+        tableValue.add(tableRow1);
+        final Map<String, Object> tableRow2 = new HashMap<>();
+        tableRow2.put("path", "mvn:mysql/mysql-connector-java/8.0.12/jar");
+        tableRow2.put("name", "mysql_jdbcDriver2");
+        tableValue.add(tableRow2);
+
+        table.setValueFromAction(tableValue);
+
+        Object convertParamValue = TaCoKitUtil.convertParamValue(table, "configuration.jdbcDriver",
+                "configuration.dataSet.dataStore.jdbcDriver");
+
+        Assertions.assertEquals(expectedValue, convertParamValue);
     }
 }

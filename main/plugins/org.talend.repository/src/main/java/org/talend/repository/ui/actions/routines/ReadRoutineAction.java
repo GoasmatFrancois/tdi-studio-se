@@ -97,7 +97,9 @@ public class ReadRoutineAction extends AbstractRoutineAction {
         routineItem = (RoutineItem) repositoryNode.getObject().getProperty().getItem();
         try {
             openRoutineEditor(routineItem, true);
-            CorePlugin.getDefault().getRunProcessService().updateLibraries(routineItem);
+            if (CorePlugin.getDefault().getRunProcessService().updateLibraries(routineItem)) {
+                updateRoutineProject();
+            }
         } catch (PartInitException e) {
             MessageBoxExceptionHandler.process(e);
         } catch (SystemException e) {

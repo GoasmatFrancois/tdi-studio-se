@@ -13,6 +13,9 @@
 package org.talend.repository.ui.actions.routines;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.ui.IEditorPart;
@@ -26,11 +29,14 @@ import org.talend.core.context.Context;
 import org.talend.core.context.RepositoryContext;
 import org.talend.core.language.ECodeLanguage;
 import org.talend.core.model.properties.RoutineItem;
+import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.repository.model.ProxyRepositoryFactory;
 import org.talend.core.repository.ui.editor.RepositoryEditorInput;
 import org.talend.designer.codegen.ICodeGeneratorService;
 import org.talend.designer.codegen.ITalendSynchronizer;
+import org.talend.designer.maven.tools.AggregatorPomsHelper;
 import org.talend.repository.ProjectManager;
+import org.talend.repository.RepositoryPlugin;
 import org.talend.repository.i18n.Messages;
 import org.talend.repository.model.RepositoryNode;
 import org.talend.repository.ui.actions.AContextualAction;
@@ -136,6 +142,24 @@ public abstract class AbstractRoutineAction extends AContextualAction {
             return;
         }
         repositoryNode = (RepositoryNode) o;
+    }
+
+    void updateRoutineProject() {
+        Job job = new Job("Update Routine project") {
+
+            @Override
+            protected IStatus run(IProgressMonitor monitor) {
+                try {
+                    new AggregatorPomsHelper().updateCodeProject(monitor, ERepositoryObjectType.ROUTINES, true, false);
+                    return org.eclipse.core.runtime.Status.OK_STATUS;
+                } catch (Exception e) {
+                    return new org.eclipse.core.runtime.Status(IStatus.ERROR, RepositoryPlugin.PLUGIN_ID, 1, e.getMessage(), e);
+                }
+            }
+
+        };
+        job.setUser(false);
+        job.schedule();
     }
 
 }

@@ -33,7 +33,11 @@ public class TableActionParameter extends AbstractActionParameter {
 
     @Override
     public Collection<Pair<String, String>> parameters() {
-        final List<Map<String, Object>> value = (List<Map<String, Object>>) elementParameter.getValue();
+        Object elementParameterValue = elementParameter.getValue();
+        if (isUseExistConnection(elementParameter) && isDataStoreParameter(elementParameter)) {
+            elementParameterValue = getParameterValueFromConnection(elementParameter, elementParameter.getName());
+        }
+        final List<Map<String, Object>> value = (List<Map<String, Object>>) elementParameterValue;
         final List<Pair<String, String>> parameters = new ArrayList<>();
         if (value != null) {
             int rowNumber = getRowNumber();

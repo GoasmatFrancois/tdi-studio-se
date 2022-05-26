@@ -29,6 +29,7 @@ import org.eclipse.jdt.ui.JavadocContentAccess;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IViewPart;
@@ -38,6 +39,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.MultiPageEditorPart;
 import org.talend.commons.CommonsPlugin;
 import org.talend.commons.exception.ExceptionHandler;
+import org.talend.commons.ui.gmf.util.DisplayUtils;
 import org.talend.core.CorePlugin;
 import org.talend.core.model.components.ComponentCategory;
 import org.talend.core.model.components.IComponent;
@@ -271,8 +273,16 @@ public class DesignerCoreService implements IDesignerCoreService {
      */
     @Override
     public IProcess getCurrentProcess() {
-        IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-        if (!(editor instanceof AbstractMultiPageTalendEditor)) {
+        IEditorPart editor;
+        if (Display.getCurrent() == null) {
+            List<IEditorPart> list = new ArrayList<>();
+            DisplayUtils.getDisplay().syncExec(
+                    () -> list.add(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor()));
+            editor = list.get(0);
+        } else {
+            editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+        }
+        if (editor == null || !(editor instanceof AbstractMultiPageTalendEditor)) {
             return null;
         }
         IProcess process = ((AbstractMultiPageTalendEditor) editor).getProcess();

@@ -58,6 +58,7 @@ import org.talend.core.language.ICodeProblemsChecker;
 import org.talend.core.model.components.ComponentCategory;
 import org.talend.core.model.general.ModuleNeeded;
 import org.talend.core.model.general.Project;
+import org.talend.core.model.general.RetrieveResult;
 import org.talend.core.model.general.TalendJobNature;
 import org.talend.core.model.process.IContext;
 import org.talend.core.model.process.IProcess;
@@ -399,17 +400,21 @@ public class DefaultRunProcessService implements IRunProcessService {
      * org.talend.designer.runprocess.IRunProcessService#updateLibraries(org.talend.core.model.properties.RoutineItem)
      */
     @Override
-    public void updateLibraries(Item routineItem) {
+    public boolean updateLibraries(Item routineItem) {
         Set<ModuleNeeded> modulesForRoutine = ModulesNeededProvider.updateModulesNeededForRoutine(routineItem);
         File libDir = getJavaProjectLibFolder().getLocation().toFile();
         if (libDir == null) {
-            return;
+            return false;
         }
         ILibraryManagerService repositoryBundleService = CorePlugin.getDefault().getRepositoryBundleService();
-        repositoryBundleService.retrieve(ERepositoryObjectType.getItemType(routineItem), modulesForRoutine,
-                libDir.getAbsolutePath(), true);
+        RetrieveResult result = repositoryBundleService.retrieveModules(ERepositoryObjectType.getItemType(routineItem),
+                modulesForRoutine, libDir.getAbsolutePath(), true);
         repositoryBundleService.installModules(modulesForRoutine, null);
-        CorePlugin.getDefault().getLibrariesService().checkLibraries();
+        boolean updated = !result.getResovledModules().isEmpty();
+        if (updated) {
+            CorePlugin.getDefault().getLibrariesService().checkLibraries();
+        }
+        return updated;
     }
 
     /*

@@ -214,8 +214,8 @@ public class RunProcessService implements IRunProcessService {
      * org.talend.designer.runprocess.IRunProcessService#updateLibraries(org.talend.core.model.properties.RoutineItem)
      */
     @Override
-    public void updateLibraries(Item routineItem) {
-        delegateService.updateLibraries(routineItem);
+    public boolean updateLibraries(Item routineItem) {
+        return delegateService.updateLibraries(routineItem);
     }
 
     @Override

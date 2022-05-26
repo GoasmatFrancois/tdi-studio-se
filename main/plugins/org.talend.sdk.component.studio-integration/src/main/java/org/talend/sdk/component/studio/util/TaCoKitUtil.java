@@ -40,6 +40,7 @@ import org.talend.commons.utils.system.EnvironmentUtils;
 import org.talend.core.model.components.ComponentCategory;
 import org.talend.core.model.components.IComponent;
 import org.talend.core.model.general.Project;
+import org.talend.core.model.process.EParameterFieldType;
 import org.talend.core.model.process.IElement;
 import org.talend.core.model.process.IElementParameter;
 import org.talend.core.model.process.INode;
@@ -71,6 +72,7 @@ import org.talend.sdk.component.studio.metadata.model.TaCoKitConfigurationModel;
 import org.talend.sdk.component.studio.model.action.SuggestionsAction;
 import org.talend.sdk.component.studio.model.parameter.PropertyDefinitionDecorator;
 import org.talend.sdk.component.studio.model.parameter.PropertyNode;
+import org.talend.sdk.component.studio.model.parameter.ValueConverter;
 import org.talend.sdk.component.studio.model.parameter.ValueSelectionParameter;
 import org.talend.updates.runtime.utils.PathUtils;
 
@@ -604,7 +606,7 @@ public class TaCoKitUtil {
                 String datastoreName = TaCoKitUtil.getDataStorePath((ComponentModel) node.getComponent(), parameterName);
                 IElementParameter param = connectionNode.getElementParameter(datastoreName);
                 if (param != null) {
-                    return param.getValue();
+                    return convertParamValue(param, datastoreName, parameterName);
                 } else {
                     throw new IllegalArgumentException("Can't find parameter:" + parameterName);
                 }
@@ -615,6 +617,34 @@ public class TaCoKitUtil {
         return null;
     }
     
+    public static Object convertParamValue(IElementParameter param, String oldName, String newName) {
+        Object paramValue = param.getValue();
+        if (StringUtils.isBlank(oldName) || StringUtils.isBlank(newName) || oldName.equals(newName)) {
+            return paramValue;
+        }
+        if (EParameterFieldType.TABLE.equals(param.getFieldType())) {
+            List<Map<String, Object>> tableValue = new ArrayList<Map<String, Object>>();
+            if (paramValue == null || paramValue instanceof String) {
+                tableValue = ValueConverter.toTable((String) paramValue);
+            } else if (paramValue instanceof List) {
+                tableValue = (List<Map<String, Object>>) paramValue;
+            }
+            final List<Map<String, Object>> converted = new ArrayList<>(tableValue.size());
+            for (final Map<String, Object> row : tableValue) {
+                final Map<String, Object> convertedRow = new LinkedHashMap<>();
+                for (final Map.Entry<String, Object> cell : row.entrySet()) {
+                    final String newKey = cell.getKey().replace(oldName, newName);
+                    convertedRow.put(newKey, cell.getValue());
+                }
+                converted.add(convertedRow);
+            }
+            if (converted.size() > 0) {
+                return converted;
+            }
+        }
+        return paramValue;
+    }
+
     public static boolean isDataStoreParameter(INode node, String parameterName) {
         if (node.getComponent() instanceof ComponentModel) {
             ComponentModel model = (ComponentModel) node.getComponent();
