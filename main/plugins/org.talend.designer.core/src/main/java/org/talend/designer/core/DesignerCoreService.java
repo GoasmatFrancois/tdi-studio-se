@@ -100,6 +100,7 @@ import org.talend.designer.core.ui.views.problems.Problems;
 import org.talend.designer.core.ui.views.properties.ComponentSettings;
 import org.talend.designer.core.ui.views.properties.ComponentSettingsView;
 import org.talend.designer.core.utils.BigDataJobUtil;
+import org.talend.designer.core.utils.ComponentsHelpUtil;
 import org.talend.designer.core.utils.JavaProcessUtil;
 import org.talend.designer.core.utils.UnifiedComponentUtil;
 import org.talend.designer.runprocess.ProcessorException;
@@ -889,5 +890,10 @@ public class DesignerCoreService implements IDesignerCoreService {
     @Override
     public String[] getNeedRemoveModulesForLog4j() {
         return UpdateLog4jJarUtils.NEED_REMOVE_MODULES;
+    }
+
+    @Override
+    public void openComponentOnlineHelp(String componentName) {
+        ComponentsHelpUtil.openLineHelp(componentName);
     }
 }
