@@ -48,24 +48,26 @@ if (mgr_<%=cid%>.getContainer().findAll().isEmpty()) {
     mgr_<%=cid%>.autoDiscoverPlugins(false, true);
 }
 
-org.talend.sdk.component.runtime.di.studio.RuntimeContextInjector.injectService(mgr_<%=cid%>, "<%=plugin%>", globalMap);
-
 <%@include file="../configuration.javajet"%>
 
 mgr_<%=cid%>.findPlugin("<%=plugin%>")
-    .get()
+    .orElseThrow(() -> new IllegalStateException("Can't find the plugin : <%=plugin%>"))
     .get(org.talend.sdk.component.runtime.manager.ContainerComponentRegistry.class)
     .getServices()
     .stream()
-    .flatMap(s_<%=cid%> -> s_<%=cid%>.getActions().stream())
-    .filter(actionMeta_<%=cid%> -> "create_connection".equals(actionMeta_<%=cid%>.getType()))
-    .forEach(actionMeta_<%=cid%> -> {
-        Object connnection_<%=cid%> = actionMeta_<%=cid%>.getInvoker().apply(configuration_<%=cid%>);
+    .forEach(serviceMeta_<%=cid%> -> {
+        serviceMeta_<%=cid%>.getActions().stream().filter(actionMeta_<%=cid%> -> "create_connection".equals(actionMeta_<%=cid%>.getType())).forEach(actionMeta_<%=cid%> -> {
+            synchronized (serviceMeta_<%=cid%>.getInstance()) {
+                org.talend.sdk.component.runtime.di.studio.RuntimeContextInjector.injectService(mgr_<%=cid%>, "<%=plugin%>", globalMap);
+                
+                Object connnection_<%=cid%> = actionMeta_<%=cid%>.getInvoker().apply(configuration_<%=cid%>);
 
-        globalMap.put("conn_<%=cid%>", connnection_<%=cid%>);
-        
-        <%for(String passwordKey : passwordKeys) {%>
-        configuration_<%=cid%>.put("<%=passwordKey%>", "securityFakePassword");
-        <%}%>
-        globalMap.put("configuration_<%=cid%>", configuration_<%=cid%>);
+                globalMap.put("conn_<%=cid%>", connnection_<%=cid%>);
+                
+                <%for(String passwordKey : passwordKeys) {%>
+                configuration_<%=cid%>.put("<%=passwordKey%>", "securityFakePassword");
+                <%}%>
+                globalMap.put("configuration_<%=cid%>", configuration_<%=cid%>);
+            }
+        });
     });

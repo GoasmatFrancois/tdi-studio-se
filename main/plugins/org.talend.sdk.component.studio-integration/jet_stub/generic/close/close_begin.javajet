@@ -48,43 +48,45 @@ if (mgr_<%=cid%>.getContainer().findAll().isEmpty()) {
     mgr_<%=cid%>.autoDiscoverPlugins(false, true);
 }
 
-org.talend.sdk.component.runtime.di.studio.RuntimeContextInjector.injectService(mgr_<%=cid%>, "<%=plugin%>", globalMap);
-
 <%
 String connection = ElementParameterParser.getValue(node,"__CONNECTION__");
 %>
 
 mgr_<%=cid%>.findPlugin("<%=plugin%>")
-    .get()
+    .orElseThrow(() -> new IllegalStateException("Can't find the plugin : <%=plugin%>"))
     .get(org.talend.sdk.component.runtime.manager.ContainerComponentRegistry.class)
     .getServices()
     .stream()
-    .flatMap(s_<%=cid%> -> s_<%=cid%>.getActions().stream())
-    .filter(actionMeta_<%=cid%> -> "close_connection".equals(actionMeta_<%=cid%>.getType()))
-    .forEach(actionMeta_<%=cid%> -> {
-        Object result_<%=cid%> = actionMeta_<%=cid%>.getInvoker().apply(null);
-        org.talend.sdk.component.api.service.connection.CloseConnectionObject cco_<%=cid%> = (org.talend.sdk.component.api.service.connection.CloseConnectionObject) result_<%=cid%>;
-        Object con_<%=cid%> = globalMap.get("conn_<%=connection%>");
-        if(con_<%=cid%>==null) {
-            throw new RuntimeException("can't find the connection object");
-        }
-        
-        globalMap.remove("conn_<%=connection%>");
-        
-        Class<?> current_<%=cid%> = cco_<%=cid%>.getClass();
-        while (current_<%=cid%> != null && current_<%=cid%> != Object.class) {
-            java.util.stream.Stream.of(current_<%=cid%>.getDeclaredFields()).filter(f_<%=cid%> -> f_<%=cid%>.isAnnotationPresent(org.talend.sdk.component.api.service.connection.Connection.class)).forEach(f_<%=cid%> -> {
-                if (!f_<%=cid%>.isAccessible()) {
-                    f_<%=cid%>.setAccessible(true);
+    .forEach(serviceMeta_<%=cid%> -> {
+        serviceMeta_<%=cid%>.getActions().stream().filter(actionMeta_<%=cid%> -> "close_connection".equals(actionMeta_<%=cid%>.getType())).forEach(actionMeta_<%=cid%> -> {
+            synchronized (serviceMeta_<%=cid%>.getInstance()) {
+                org.talend.sdk.component.runtime.di.studio.RuntimeContextInjector.injectService(mgr_<%=cid%>, "<%=plugin%>", globalMap);
+                
+                Object result_<%=cid%> = actionMeta_<%=cid%>.getInvoker().apply(null);
+                org.talend.sdk.component.api.service.connection.CloseConnectionObject cco_<%=cid%> = (org.talend.sdk.component.api.service.connection.CloseConnectionObject) result_<%=cid%>;
+                Object con_<%=cid%> = globalMap.get("conn_<%=connection%>");
+                if(con_<%=cid%>==null) {
+                    throw new RuntimeException("can't find the connection object");
                 }
-                try {
-                    f_<%=cid%>.set(cco_<%=cid%>, con_<%=cid%>);
-                } catch (final IllegalAccessException e_<%=cid%>) {
-                    throw new IllegalStateException(e_<%=cid%>);
+                
+                globalMap.remove("conn_<%=connection%>");
+                
+                Class<?> current_<%=cid%> = cco_<%=cid%>.getClass();
+                while (current_<%=cid%> != null && current_<%=cid%> != Object.class) {
+                    java.util.stream.Stream.of(current_<%=cid%>.getDeclaredFields()).filter(f_<%=cid%> -> f_<%=cid%>.isAnnotationPresent(org.talend.sdk.component.api.service.connection.Connection.class)).forEach(f_<%=cid%> -> {
+                        if (!f_<%=cid%>.isAccessible()) {
+                            f_<%=cid%>.setAccessible(true);
+                        }
+                        try {
+                            f_<%=cid%>.set(cco_<%=cid%>, con_<%=cid%>);
+                        } catch (final IllegalAccessException e_<%=cid%>) {
+                            throw new IllegalStateException(e_<%=cid%>);
+                        }
+                    });
+                    current_<%=cid%> = current_<%=cid%>.getSuperclass();
                 }
-            });
-            current_<%=cid%> = current_<%=cid%>.getSuperclass();
-        }
-        
-        boolean r_<%=cid%> = cco_<%=cid%>.close();
+                
+                boolean r_<%=cid%> = cco_<%=cid%>.close();
+            }
+        });
     });
