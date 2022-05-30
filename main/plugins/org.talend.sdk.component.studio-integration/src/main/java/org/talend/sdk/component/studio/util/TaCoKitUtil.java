@@ -549,6 +549,9 @@ public class TaCoKitUtil {
                 isSupport = false;
             }
         }
+        if(isSupport && component.getDetail().getId().getName().endsWith("OutputBulk")) {
+            isSupport = false;
+        }
         return isSupport;
     }
     
