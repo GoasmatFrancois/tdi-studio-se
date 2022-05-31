@@ -505,7 +505,7 @@ public class ChangeValuesFromRepository extends ChangeMetadataCommand {
                                 }
                             }
 
-                            JobSettingVersionUtil.setDbVersion(elementParameter, dbVersion, false);
+                            JobSettingVersionUtil.setDbVersion(elementParameter, dbType, dbVersion, false);
                             DesignerUtilities.setSchemaDB(elementParameter2, param.getValue());
                         } else if (param.getFieldType().equals(EParameterFieldType.CLOSED_LIST)
                                 && "FRAMEWORK_TYPE".equals(param.getRepositoryValue())) { //$NON-NLS-1$

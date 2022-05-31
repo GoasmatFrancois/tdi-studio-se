@@ -20,7 +20,11 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.jface.wizard.IWizardPage;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.PlatformUI;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.ui.runtime.exception.ExceptionMessageDialog;
 import org.talend.core.model.properties.ConnectionItem;
@@ -178,6 +182,17 @@ public abstract class TaCoKitConfigurationWizard extends CheckLastVersionReposit
                 this.mainPage != null ? this.mainPage.getElementsParameters() : Collections.emptyList(),
                 this.advancedPage != null ? this.advancedPage.getElementsParameters() : Collections.emptyList());
     }*/
+
+    @Override
+    public void createPageControls(Composite pageContainer) {
+        super.createPageControls(pageContainer);
+        Shell windowShell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+        Point windowLocation = windowShell.getLocation();
+        Shell wizardShell = getShell();
+        wizardShell.pack();
+        wizardShell.setLocation(windowLocation.x + (windowShell.getBounds().width - wizardShell.getBounds().width) / 2,
+                windowLocation.y + (windowShell.getBounds().height - wizardShell.getBounds().height) / 2);
+    }
 
     @Override
     public boolean performFinish() {

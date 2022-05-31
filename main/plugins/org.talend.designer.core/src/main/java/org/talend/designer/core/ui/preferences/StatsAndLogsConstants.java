@@ -134,9 +134,9 @@ public class StatsAndLogsConstants {
             "jtds-1.3.1-patch-20190523.jar", "mssql-jdbc.jar"};//$NON-NLS-1$  //$NON-NLS-2$
 
 
-    public static final String[] DB_VERSION_DISPLAY = new String[] {"Oracle 18 and above", "Oracle 12", "Oracle 11", "Oracle 10", "Oracle 9",
-            "Oracle 8", "MySQL 5", "MariaDB", "Open source JTDS", "Microsoft", "Access 2003", "Access 2007", "Prior to v9",
-            "v9 +", "Sybase 16 (SQL Anywhere)", "Sybase 16", "Sybase 12/15" };
+    public static final String[] DB_VERSION_DISPLAY = new String[] { "Oracle 18 and above", "Oracle 12", "Oracle 11", "Oracle 10",
+            "Oracle 9", "Oracle 8", "MySQL 8", "MySQL 5", "MariaDB", "Open source JTDS", "Microsoft", "Access 2003",
+            "Access 2007", "Prior to v9", "v9 +", "Sybase 16 (SQL Anywhere)", "Sybase 16", "Sybase 12/15" };
 
 
     public static final String[] DB_VERSION_CODE = new String[] {"ORACLE_18", "ORACLE_12", "ORACLE_11", "ORACLE_10", "ORACLE_9", "ORACLE_8",
@@ -169,7 +169,7 @@ public class StatsAndLogsConstants {
     public static final String[] PSQL_VERSION_CODE = new String[] {  "V9_X","PRIOR_TO_V9" }; //$NON-NLS-1$ //$NON-NLS-2$
 
     public static final String[] PSQL_VERSION_DRIVER = new String[] {
-            "postgresql-42.2.14.jar", "postgresql-8.4-703.jdbc4.jar" }; //$NON-NLS-1$ //$NON-NLS-2$
+            "postgresql-42.2.25.jar", "postgresql-8.4-703.jdbc4.jar" }; //$NON-NLS-1$ //$NON-NLS-2$
 
     public static final String[][] DISPLAY_DBNAMES = new String[][] { PERL_DISPLAY_DBNAMES, JAVA_DISPLAY_DBNAMES };
 

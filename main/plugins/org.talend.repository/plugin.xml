@@ -3714,7 +3714,7 @@
                version="8.0.1">
 
         </projecttask>
-		    <projecttask
+        <projecttask
                beforeLogon="false"
                breaks="8.0.0"
                class="org.talend.repository.model.migration.RedshiftVersion2MigrationTask"
@@ -3758,6 +3758,15 @@
                id="org.talend.repository.model.migration.SetKeystoreKafkaMigrationTask"
                name="SetKeystoreKafkaMigrationTask"
                version="8.0.1">
+        </projecttask>
+        <projecttask
+              beforeLogon="true"
+              breaks="8.0.0"
+              class="org.talend.repository.model.migration.ReplaceMappingForGreenplumDatabaseMigrationTask"
+              description="Change Mapping type in GreenPlum components where greenplum driver selected"
+              id="org.talend.repository.model.migration.ReplaceMappingForGreenplumDatabaseMigrationTask"
+              name="ReplaceMappingForGreenplumDatabaseMigrationTask"
+              version="8.0.1">
         </projecttask>
    </extension>
 

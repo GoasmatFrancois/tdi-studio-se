@@ -42,6 +42,8 @@
 			NUM_ROW="18"
 			SHOW="false"
 		>
+			<DEFAULT IF="DB_DRIVER=='GREENPLUM'">greenplum_id</DEFAULT>
+			<DEFAULT IF="DB_DRIVER=='POSTGRESQL'">postgres_id</DEFAULT>
 			<DEFAULT>postgres_id</DEFAULT>
 		</PARAMETER>
 

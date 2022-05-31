@@ -73,11 +73,17 @@ public class UpdatesitePreferencePage extends PreferencePage {
 
     private Composite remotePanel;
 
+    private Composite overwritePanel;
+
     private Composite localPanel;
 
     private Composite warningPanel;
 
     private boolean enableTmcUpdateSettings;
+
+    private boolean isCloudConnection = false;
+
+    private boolean isWorkbenchRunning = false;
 
     @Override
     protected Control createContents(Composite parent) {
@@ -101,8 +107,8 @@ public class UpdatesitePreferencePage extends PreferencePage {
         GridLayout panelLayout = null;
         GridData gd = null;
         ConnectionBean curConnection = LoginHelper.getInstance().getCurrentSelectedConnBean();
-        boolean isCloudConnection = LoginHelper.isCloudConnection(curConnection);
-        boolean isWorkbenchRunning = PlatformUI.isWorkbenchRunning();
+        isCloudConnection = LoginHelper.isCloudConnection(curConnection);
+        isWorkbenchRunning = PlatformUI.isWorkbenchRunning();
         if (isWorkbenchRunning && isCloudConnection) {
             remoteGroup = new Group(remotePanel, SWT.NONE);
             String projectLabel = "";
@@ -155,8 +161,17 @@ public class UpdatesitePreferencePage extends PreferencePage {
         } else {
             showOverwrite = isWorkbenchRunning && isCloudConnection;
         }
+        overwritePanel = new Composite(panel, SWT.NONE);
+        fd = new FormData();
+        fd.top = new FormAttachment(remotePanel, 0, SWT.BOTTOM);
+        fd.left = new FormAttachment(0);
+        overwritePanel.setLayoutData(fd);
         if (showOverwrite) {
-            overwriteRemoteUpdateSettingsBtn = new Button(panel, SWT.CHECK);
+            formLayout = new FormLayout();
+            formLayout.marginBottom = 7;
+            overwritePanel.setLayout(formLayout);
+
+            overwriteRemoteUpdateSettingsBtn = new Button(overwritePanel, SWT.CHECK);
             String overwriteLabel = null;
             if (isWorkbenchRunning) {
                 overwriteLabel = Messages.getString("UpdatesitePreferencePage.btn.overwriteRemoteUpdateSettings");
@@ -165,11 +180,11 @@ public class UpdatesitePreferencePage extends PreferencePage {
             }
             overwriteRemoteUpdateSettingsBtn.setText(overwriteLabel);
             fd = new FormData();
-            fd.top = new FormAttachment(remotePanel, 0, SWT.BOTTOM);
+            fd.top = new FormAttachment(0);
             fd.left = new FormAttachment(0);
             overwriteRemoteUpdateSettingsBtn.setLayoutData(fd);
             if (!isWorkbenchRunning) {
-                Label help = new Label(panel, SWT.PUSH);
+                Label help = new Label(overwritePanel, SWT.PUSH);
                 help.setImage(ImageProvider.getImage(EImage.QUESTION_ICON));
                 help.setToolTipText(Messages.getString("UpdatesitePreferencePage.btn.overwriteRemoteUpdateSettings.help"));
                 fd = new FormData();
@@ -177,16 +192,14 @@ public class UpdatesitePreferencePage extends PreferencePage {
                 fd.left = new FormAttachment(overwriteRemoteUpdateSettingsBtn, 2, SWT.RIGHT);
                 help.setLayoutData(fd);
             }
+        } else {
+            fd.height = 0;
         }
 
         localPanel = new Composite(panel, SWT.NONE);
         localPanel.setLayout(new FormLayout());
         fd = new FormData();
-        if (overwriteRemoteUpdateSettingsBtn != null) {
-            fd.top = new FormAttachment(overwriteRemoteUpdateSettingsBtn, 7, SWT.BOTTOM);
-        } else {
-            fd.top = new FormAttachment(remotePanel, 0, SWT.BOTTOM);
-        }
+        fd.top = new FormAttachment(overwritePanel, 0, SWT.BOTTOM);
         fd.left = new FormAttachment(0);
         fd.right = new FormAttachment(100);
         fd.bottom = new FormAttachment(100);
@@ -280,6 +293,10 @@ public class UpdatesitePreferencePage extends PreferencePage {
                 }
             } else {
                 fd.height = 0;
+                if (isCloudConnection && isWorkbenchRunning) {
+                    FormData owFd = (FormData) overwritePanel.getLayoutData();
+                    owFd.height = 0;
+                }
             }
             boolean overwriteTmcUpdateSettings = config.isOverwriteTmcUpdateSettings(monitor);
             if (overwriteRemoteUpdateSettingsBtn != null) {
