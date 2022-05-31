@@ -148,7 +148,11 @@ imports="
 <%
 		if (("oracle_id".equalsIgnoreCase(dbms))) {
 %>
-			if("LONG".equals(rsmd_<%=cid%>.getColumnTypeName(i).toUpperCase())) {
+			if("NUMBER".equalsIgnoreCase(rsmd_<%=cid%>.getColumnTypeName(i))) {
+				<% // a way to fix TDI-47895 %>
+				int length = rsmd_<%=cid%>.getPrecision(i);
+				dcm_<%=cid%>.setLength(length > 38 ? 38 : length);
+			} else if("LONG".equals(rsmd_<%=cid%>.getColumnTypeName(i).toUpperCase())) {
 				String length = MetadataTalendType.getDefaultDBTypes("oracle_id", "LONG", MetadataTalendType.DEFAULT_LENGTH);
 				if(length!=null && !("".equals(length))) {
 					dcm_<%=cid%>.setLength(Integer.parseInt(length));

@@ -678,8 +678,16 @@
 							<td class="FONTSTYLE">
 								<b>
 									<xsl:value-of select="/project/@i18n.job.component" />&#160;&#160;
-									<xsl:value-of
-										select="componentType" />
+						              <xsl:choose>
+                                        <xsl:when test="string-length(@job)!=0" >
+                                         <a name="{@uniqueName}"  href="{@href}" style="LINKSTYLE">
+                                            <xsl:value-of select="componentType" />
+                                         </a>
+                                         </xsl:when>
+                                         <xsl:otherwise>
+                                            <xsl:value-of select="componentType" />
+                                         </xsl:otherwise>
+                                      </xsl:choose>
 								</b>
 							</td>
 						</tr>
@@ -691,7 +699,17 @@
 						<tr>
 							<td class="cols" align="center" rowspan="2"
 								width="10%">
-								<img src="{@icon}" alt="" />
+                                <xsl:choose>
+								<xsl:when test="string-length(@job)!=0" >
+                                <a href="{@href}" class="LINKSTYLE">
+                                    <xsl:value-of select="@name" /> 
+                                    <img src="{@icon}" alt="" />
+                                </a>
+                                </xsl:when>
+                                 <xsl:otherwise>
+                                    <img src="{@icon}" alt="" />
+                                 </xsl:otherwise>
+                                 </xsl:choose>
 								&#160;&#160;&#160;&#160;&#160;
 							</td>
 							<td align="left" class="TABLECOLUMNSTYLE"
@@ -888,8 +906,16 @@
 							<td class="FONTSTYLE">
 								<b>
 									<xsl:value-of select="/project/@i18n.job.component" />&#160;&#160;
-									<xsl:value-of
-										select="componentType" />
+									<xsl:choose>
+                                        <xsl:when test="string-length(@joblet)!=0" >
+                                         <a name="{@uniqueName}"  href="{@href}" style="LINKSTYLE">
+                                            <xsl:value-of select="componentType" />
+                                         </a>
+                                         </xsl:when>
+                                         <xsl:otherwise>
+                                            <xsl:value-of select="componentType" />
+                                         </xsl:otherwise>
+                                      </xsl:choose>
 								</b>
 							</td>
 						</tr>

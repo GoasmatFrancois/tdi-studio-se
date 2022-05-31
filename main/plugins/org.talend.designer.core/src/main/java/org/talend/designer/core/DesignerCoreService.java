@@ -37,6 +37,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.MultiPageEditorPart;
+import org.talend.camel.core.model.camelProperties.CamelPropertiesPackage;
 import org.talend.commons.CommonsPlugin;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.ui.gmf.util.DisplayUtils;
@@ -80,6 +81,7 @@ import org.talend.designer.core.model.components.DummyComponent;
 import org.talend.designer.core.model.components.EParameterName;
 import org.talend.designer.core.model.components.EmfComponent;
 import org.talend.designer.core.model.components.Expression;
+import org.talend.designer.core.model.process.AbstractProcessProvider;
 import org.talend.designer.core.model.process.DataNode;
 import org.talend.designer.core.model.utils.emf.talendfile.ParametersType;
 import org.talend.designer.core.ui.AbstractMultiPageTalendEditor;
@@ -905,5 +907,21 @@ public class DesignerCoreService implements IDesignerCoreService {
     @Override
     public void openComponentOnlineHelp(String componentName) {
         ComponentsHelpUtil.openLineHelp(componentName);
+    }
+
+    @Override
+    public IProcess getJobletProcessByItem(Item item) {
+        
+        if (item.eClass() == CamelPropertiesPackage.Literals.ROUTELET_PROCESS_ITEM) {
+
+            return getProcessFromItemByExtendion(item,true);
+        }
+        
+        AbstractProcessProvider jobletProcessProvider = AbstractProcessProvider
+                .findProcessProviderFromPID(IComponent.JOBLET_PID);
+        if (jobletProcessProvider != null) {
+            return jobletProcessProvider.buildNewGraphicProcess(item, true);
+        }
+        return null;
     }
 }

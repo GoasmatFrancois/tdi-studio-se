@@ -16,6 +16,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,15 +43,22 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.ui.internal.wizards.datatransfer.WizardFileSystemResourceExportPage1;
+import org.talend.commons.exception.PersistenceException;
+import org.talend.commons.ui.runtime.exception.ExceptionHandler;
 import org.talend.commons.ui.swt.formtools.LabelledFileField;
 import org.talend.core.CorePlugin;
+import org.talend.core.PluginChecker;
 import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.repository.ERepositoryObjectType;
 import org.talend.core.model.repository.IRepositoryViewObject;
 import org.talend.core.model.repository.documentation.generation.JobHTMLScriptsManager;
 import org.talend.core.prefs.ITalendCorePrefConstants;
+import org.talend.core.repository.model.ProxyRepositoryFactory;
+import org.talend.core.repository.model.VersionList;
 import org.talend.core.ui.export.ArchiveFileExportOperationFullPath;
+import org.talend.designer.documentation.generation.GenerateJobletDocListHTML;
 import org.talend.designer.documentation.generation.HTMLDocGenerator;
+import org.talend.designer.documentation.utils.DocumentationUtil;
 import org.talend.repository.documentation.ExportFileResource;
 import org.talend.repository.i18n.Messages;
 import org.talend.repository.model.IRepositoryNode.ENodeType;
@@ -60,7 +68,7 @@ import org.talend.repository.model.RepositoryNode;
 /**
  * Page of the Job Scripts Export Wizard. <br/>
  *
- * @referto WizardArchiveFileResourceExportPage1 $Id: JobScriptsExportWizardPage.java 1 2006-12-13 下午03:09:07 bqian
+ * @referto WizardArchiveFileResourceExportPage1 $Id: JobScriptsExportWizardPage.java 1 2006-12-13 ä¸‹å�ˆ03:09:07 bqian
  *
  */
 public class GenerateDocAsHTMLWizardPage extends WizardFileSystemResourceExportPage1 {
@@ -68,6 +76,10 @@ public class GenerateDocAsHTMLWizardPage extends WizardFileSystemResourceExportP
     private ExportFileResource[] process;
 
     private JobHTMLScriptsManager manager;
+    
+    private ExportFileResource[] jobletprocess;
+    
+    private JobHTMLScriptsManager jobletManager;
 
     private RepositoryNode[] nodes;
 
@@ -94,9 +106,102 @@ public class GenerateDocAsHTMLWizardPage extends WizardFileSystemResourceExportP
 
             manager = new JobHTMLScriptsManager(new HTMLDocGenerator(nodes[0].getRoot().getProject(),
                     ERepositoryObjectType.JOB_DOC, ERepositoryObjectType.PROCESS), true);
+            // for joblet
+            if (PluginChecker.isJobLetPluginLoaded()) {
+                jobletManager = new JobHTMLScriptsManager(
+                        new GenerateJobletDocListHTML(nodes[0].getRoot().getProject()), true);
+            }
+
         }
 
         List<ExportFileResource> list = new ArrayList<ExportFileResource>();
+        List<ExportFileResource> jobletList = new ArrayList<ExportFileResource>();
+        List<IRepositoryViewObject> repositoryViewObjects = new ArrayList<IRepositoryViewObject>();
+
+        List<IRepositoryViewObject> latestVersionRepositoryViewObjects = new VersionList(false);
+        try {
+            repositoryViewObjects = ProxyRepositoryFactory.getInstance().getAll(ERepositoryObjectType.PROCESS, false,
+                    true);
+            if (ERepositoryObjectType.PROCESS_MR != null) {
+
+                List<IRepositoryViewObject> repositoryViewObjects4BDMR = ProxyRepositoryFactory.getInstance()
+                        .getAll(ERepositoryObjectType.PROCESS_MR, false, true);
+                if (repositoryViewObjects4BDMR != null && repositoryViewObjects4BDMR.size() > 0) {
+
+                    repositoryViewObjects.addAll(repositoryViewObjects4BDMR);
+                }
+            }
+            
+            if (ERepositoryObjectType.PROCESS_STORM != null) {
+                List<IRepositoryViewObject> repositoryViewObjects4BDStream = ProxyRepositoryFactory.getInstance()
+                        .getAll(ERepositoryObjectType.PROCESS_STORM, false, true);
+
+                if (repositoryViewObjects4BDStream != null && repositoryViewObjects4BDStream.size() > 0) {
+
+                    repositoryViewObjects.addAll(repositoryViewObjects4BDStream);
+                }
+            }
+            
+            for (IRepositoryViewObject rep : repositoryViewObjects) {
+
+                latestVersionRepositoryViewObjects.add(rep);
+            }
+
+        } catch (PersistenceException e) {
+            ExceptionHandler.process(e);
+        }
+        List<IRepositoryViewObject> jobletRepositoryViewObjects = new ArrayList<IRepositoryViewObject>();
+        try {
+            if (PluginChecker.isJobLetPluginLoaded()) {
+
+                jobletRepositoryViewObjects = ProxyRepositoryFactory.getInstance().getAll(ERepositoryObjectType.JOBLET,
+                        false, true);
+
+                if (ERepositoryObjectType.SPARK_JOBLET != null) {
+
+                    List<IRepositoryViewObject> sparkJobletRepositoryViewObjects4BD = ProxyRepositoryFactory
+                            .getInstance().getAll(ERepositoryObjectType.SPARK_JOBLET, false, true);
+                    if (sparkJobletRepositoryViewObjects4BD != null && sparkJobletRepositoryViewObjects4BD.size() > 0) {
+
+                        jobletRepositoryViewObjects.addAll(sparkJobletRepositoryViewObjects4BD);
+                    }
+                }
+
+                if (ERepositoryObjectType.SPARK_STREAMING_JOBLET != null) {
+
+                    List<IRepositoryViewObject> sparkStreamJobletRepositoryViewObjects4BD = ProxyRepositoryFactory
+                            .getInstance().getAll(ERepositoryObjectType.SPARK_STREAMING_JOBLET, false, true);
+
+                    if (sparkStreamJobletRepositoryViewObjects4BD != null
+                            && sparkStreamJobletRepositoryViewObjects4BD.size() > 0) {
+
+                        jobletRepositoryViewObjects.addAll(sparkStreamJobletRepositoryViewObjects4BD);
+                    }
+                }
+
+            }
+            
+            if (PluginChecker.isRouteletLoaded()) {
+                
+                if (ERepositoryObjectType.PROCESS_ROUTELET != null) {
+                    
+                    List<IRepositoryViewObject> routeJobletRepositoryViewObjects = ProxyRepositoryFactory.getInstance()
+                            .getAll(ERepositoryObjectType.PROCESS_ROUTELET, false, true);
+
+                    if (routeJobletRepositoryViewObjects != null && routeJobletRepositoryViewObjects.size() > 0) {
+
+                        jobletRepositoryViewObjects.addAll(routeJobletRepositoryViewObjects);
+                    }
+                }
+
+                for (IRepositoryViewObject rep : jobletRepositoryViewObjects) {
+
+                    latestVersionRepositoryViewObjects.add(rep);
+                }
+            }
+        } catch (PersistenceException e) {
+            ExceptionHandler.process(e);
+        }
         for (RepositoryNode node : nodes) {
             if (node.getType() == ENodeType.SYSTEM_FOLDER || node.getType() == ENodeType.SIMPLE_FOLDER) {
                 addTreeNode(node, node.getProperties(EProperties.LABEL).toString(), list);
@@ -105,13 +210,22 @@ public class GenerateDocAsHTMLWizardPage extends WizardFileSystemResourceExportP
                 IRepositoryViewObject repositoryObject = node.getObject();
                 if (repositoryObject.getProperty().getItem() instanceof ProcessItem) {
                     ProcessItem processItem = (ProcessItem) repositoryObject.getProperty().getItem();
-                    ExportFileResource resource = new ExportFileResource(processItem, processItem.getProperty().getLabel());
+                    ExportFileResource resource = new ExportFileResource(processItem,
+                            processItem.getProperty().getLabel());
                     resource.setNode(node);
-                    list.add(resource);
+
+                    if (!DocumentationUtil.isExist(list, resource)) {
+                        list.add(resource);
+                    }
+                    DocumentationUtil.getRelatedResources(list, jobletList, repositoryViewObjects,
+                            latestVersionRepositoryViewObjects, jobletRepositoryViewObjects, processItem);
                 }
             }
         }
+        Collections.reverse(jobletList);
+        jobletprocess = jobletList.toArray(new ExportFileResource[jobletList.size()]);
 
+        Collections.reverse(list);
         process = list.toArray(new ExportFileResource[list.size()]);
     }
 
@@ -125,6 +239,7 @@ public class GenerateDocAsHTMLWizardPage extends WizardFileSystemResourceExportP
                 list.add(resource);
             }
         }
+        
         Object[] nodes = node.getChildren().toArray();
         if (nodes.length <= 0) {
             return;
@@ -390,6 +505,9 @@ public class GenerateDocAsHTMLWizardPage extends WizardFileSystemResourceExportP
         // add for bug TDI-21815
         saveLastDirectoryName(runnable);
         manager.deleteTempFiles();
+        if (jobletManager != null) {
+            jobletManager.deleteTempFiles();
+        }
 
         return ok;
     }
@@ -463,9 +581,22 @@ public class GenerateDocAsHTMLWizardPage extends WizardFileSystemResourceExportP
      * @return a collection of resources currently selected for export (element type: <code>IResource</code>)
      */
     protected List<ExportFileResource> getExportResources() {
-        return manager.getExportResourcesWithCss(process, cssFilePath);
-    }
+        List<ExportFileResource> all = new ArrayList();
 
+        List<ExportFileResource> exportJobletResources = new ArrayList<ExportFileResource>();
+        if (PluginChecker.isJobLetPluginLoaded() || PluginChecker.isRouteletLoaded()) {
+            exportJobletResources = jobletManager.getExportResourcesWithCss(jobletprocess,
+                    cssFilePath);
+        }
+        List<ExportFileResource> exportResources = manager.getExportResourcesWithCss(process, cssFilePath);
+
+        if (exportJobletResources != null && exportJobletResources.size() > 0) {
+            all.addAll(exportJobletResources);
+        }
+        all.addAll(exportResources);
+        return all;
+    }
+    
     /**
      * Answer the contents of self's destination specification widget. If this value does not have a suffix then add it
      * first.
