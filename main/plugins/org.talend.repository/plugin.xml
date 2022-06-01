@@ -3711,6 +3711,7 @@
                description="Apply security properties after advanced Kafka properties for tKafkaInput and tKafkaOutput"
                id="org.talend.repository.model.migration.ApplySecurityAfterAdvancedKafkaProperties"
                name="ApplySecurityAfterAdvancedKafkaProperties"
+		     
                version="8.0.1">
         </projecttask>
         <projecttask
