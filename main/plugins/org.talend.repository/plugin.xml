@@ -3712,7 +3712,7 @@
                id="org.talend.repository.model.migration.ApplySecurityAfterAdvancedKafkaProperties"
                name="ApplySecurityAfterAdvancedKafkaProperties"
                version="8.0.1">
-		
+
         </projecttask>
         <projecttask
                beforeLogon="false"
