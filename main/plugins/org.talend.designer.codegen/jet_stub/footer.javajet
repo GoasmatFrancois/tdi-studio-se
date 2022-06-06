@@ -324,6 +324,8 @@
 
     public static void main(String[] args){
         final <%=className %> <%=className %>Class = new <%=className %>();
+		
+		final java.util.Properties jobInfo = <%=className %>Class.getjobInfo();
 
         int exitCode = <%=className %>Class.runJobInTOS(args);
         <%if(isLog4jEnabled){%>
@@ -333,6 +335,37 @@
         <%}%>
 
         System.exit(exitCode);
+    }
+	
+
+	
+	
+    private java.util.Properties getjobInfo(){
+	
+
+        String TEMPLATE_PATH = "src/main/templates/jobInfo_template.properties";
+        String BUILD_PATH = "../jobInfo.properties";
+        final String path = this.getClass().getResource("").getPath();
+        final java.io.File templateFile = new java.io.File(path.substring(0, path.lastIndexOf("target")).concat(TEMPLATE_PATH));
+        if(templateFile.exists()){
+            return readJobInfo(templateFile);
+        }else{
+            return readJobInfo(new java.io.File(BUILD_PATH));
+        }
+    }
+
+    private java.util.Properties readJobInfo(java.io.File jobInfo){
+	
+        java.util.Properties properties = new java.util.Properties();
+        if(jobInfo.exists()) {
+            try {
+                properties.load(new java.io.FileInputStream(jobInfo));
+            } catch (IOException e) {
+                log.debug("Read jobInfo.properties file fail: " + e.getMessage());
+            }
+        }
+		log.warn("Project name: {}\nJob name: {}\nGIT Commit ID: {}\nTalend Version: {}",projectName,jobName,properties.getProperty("gitCommitId"), "<%=System.getProperties().getProperty("talend.studio.version")%>");
+        return properties;
     }
 
    <%
