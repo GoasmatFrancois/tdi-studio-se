@@ -101,7 +101,10 @@ imports="
         			%>
         			java.util.Properties properties_<%=cid%> = new java.util.Properties();
                                                         properties_<%=cid%>.setProperty("user",dbUser_<%=cid%>);
-                                                        properties_<%=cid%>.setProperty("password",dbPwd_<%=cid%>);
+                                                        <% /* could connect using SSO without password, avoiding NPE here */ %>
+                                                        if (dbPwd_<%=cid%> != null) {
+                                                            properties_<%=cid%>.setProperty("password",dbPwd_<%=cid%>);
+                                                        }
                                                         <%
                                                         for(java.util.Map<String, String> entry : properties){
                                                         %>
