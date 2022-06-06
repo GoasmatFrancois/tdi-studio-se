@@ -152,7 +152,9 @@ public class CodeGeneratorService implements ICodeGeneratorService {
         ComponentsFactoryProvider.getInstance().resetCache();
         ILibraryManagerService librairesManagerService = (ILibraryManagerService) GlobalServiceRegister.getDefault().getService(
                 ILibraryManagerService.class);
-        librairesManagerService.clearCache();
+        //TUP-31721: The generated studio index will include every possible values with TP_ALL license . 
+        //Studio 8 will not re-generate the index after applying patch and installing any component.
+        librairesManagerService.clearCache(false);
         CorePlugin.getDefault().getLibrariesService().syncLibraries();
         Job job = CodeGeneratorEmittersPoolFactory.initialize();
         // achen modify to record ctrl+shift+f3 is pressed to fix bug 0006107
