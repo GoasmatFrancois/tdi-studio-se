@@ -2808,9 +2808,6 @@ public abstract class AbstractElementPropertySectionController implements Proper
             List<? extends IElementParameter> params = getPromptParameters(element);
             for (IElementParameter param : params) {
                 Object paramValue = param.getValue();
-                if (!(param.getFieldType().equals(EParameterFieldType.TEXT))) {
-                    continue;
-                }
                 if (paramValue != null && !"".equals(paramValue)) { //$NON-NLS-1$
                     String value = JavaSqlFactory.getReportPromptConValueFromCache(connection.getContextName(),
                             connection.getContextId(), paramValue.toString());
@@ -2845,9 +2842,6 @@ public abstract class AbstractElementPropertySectionController implements Proper
                 List<? extends IElementParameter> params = getPromptParameters(element);
                 for (IElementParameter param : params) {
                     Object paramValue = param.getValue();
-                    if (!(param.getFieldType().equals(EParameterFieldType.TEXT))) {
-                        continue;
-                    }
                     if (paramValue != null && !"".equals(paramValue)) { //$NON-NLS-1$
                         if (promptNeededMap.containsKey(paramValue)) {
                             promptParameterMap.put(param.getName(), paramValue.toString());
