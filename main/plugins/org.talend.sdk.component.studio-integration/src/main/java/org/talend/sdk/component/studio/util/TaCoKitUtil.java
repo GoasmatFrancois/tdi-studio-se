@@ -746,7 +746,7 @@ public class TaCoKitUtil {
 
     public static void updateElementParameter(final IElementParameter param, Map<String, String> suggestedValues) {
         param.setListItemsDisplayCodeName(suggestedValues.keySet().toArray(new String[suggestedValues.size()]));
-        param.setListItemsValue(suggestedValues.keySet().toArray(new String[suggestedValues.size()]));
+        param.setListItemsValue(suggestedValues.values().toArray(new String[suggestedValues.size()]));
         param.setListItemsDisplayName(suggestedValues.keySet().toArray(new String[suggestedValues.size()]));
         param.setListItemsNotShowIf(new String[suggestedValues.size()]);
         param.setListItemsShowIf(new String[suggestedValues.size()]);

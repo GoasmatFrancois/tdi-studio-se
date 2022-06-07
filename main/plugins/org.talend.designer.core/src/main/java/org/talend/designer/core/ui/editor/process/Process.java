@@ -94,6 +94,7 @@ import org.talend.core.model.process.EComponentCategory;
 import org.talend.core.model.process.EConnectionType;
 import org.talend.core.model.process.EParameterFieldType;
 import org.talend.core.model.process.Element;
+import org.talend.core.model.process.ElementParameterValueModel;
 import org.talend.core.model.process.IConnection;
 import org.talend.core.model.process.IConnectionCategory;
 import org.talend.core.model.process.IContext;
@@ -1235,10 +1236,12 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
                                     ExceptionHandler.process(e);
                                 }
                             }
-                        } else {
-                            if (o instanceof Boolean) {
-                                strValue = ((Boolean) o).toString();
-                            }
+                        } else if (o instanceof Boolean) {
+                            strValue = ((Boolean) o).toString();
+                        } else if (o instanceof ElementParameterValueModel) {
+                            ElementParameterValueModel model = (ElementParameterValueModel) o;
+                            elementValue.setLabel(model.getLebel());
+                            strValue = model.getValue();
                         }
                     }
                     if (tmpParam != null && EParameterFieldType.isPassword(tmpParam.getFieldType())) {
@@ -1548,7 +1551,14 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
                         if (needRemoveQuotes) {
                             elemValue = TalendTextUtils.removeQuotes(elemValue);
                         }
-                        lineValues.put(elementValue.getElementRef(), elemValue);
+                        String valuelabel = elementValue.getLabel();
+                        ElementParameterValueModel model = null;
+                        if (StringUtils.isNotBlank(valuelabel)) {
+                            model = new ElementParameterValueModel();
+                            model.setValue(elemValue);
+                            model.setLebel(valuelabel);
+                        }
+                        lineValues.put(elementValue.getElementRef(), model != null ? elemValue : model);
                         if (elementValue.getType() != null) {
                             lineValues.put(elementValue.getElementRef() + IEbcdicConstant.REF_TYPE, elementValue.getType());
                         }

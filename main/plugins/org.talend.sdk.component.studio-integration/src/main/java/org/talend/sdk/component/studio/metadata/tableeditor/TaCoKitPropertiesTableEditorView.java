@@ -13,7 +13,6 @@
 package org.talend.sdk.component.studio.metadata.tableeditor;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -25,6 +24,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Table;
 import org.talend.commons.ui.runtime.swt.tableviewer.data.ModifiedObjectInfo;
 import org.talend.commons.ui.swt.tableviewer.TableViewerCreator;
+import org.talend.core.model.process.EParameterFieldType;
+import org.talend.core.model.process.ElementParameterValueModel;
 import org.talend.core.model.process.IElement;
 import org.talend.core.model.process.IElementParameter;
 import org.talend.designer.core.ui.editor.properties.macrowidgets.tableeditor.PropertiesTableEditorModel;
@@ -64,12 +65,14 @@ public class TaCoKitPropertiesTableEditorView<B> extends PropertiesTableEditorVi
             Map<String, String> svs = new LinkedHashMap<String, String>();
 
             if (currentParam.getListItemsValue() != null && currentParam.getListItemsValue().length > 0) {
-                for (Object o : currentParam.getListItemsValue()) {
-                    svs.put(String.valueOf(o), String.valueOf(o));
+                Object[] listItemsValue = currentParam.getListItemsValue();
+                String[] listItemsDisplayName = currentParam.getListItemsDisplayName();
+                for (int i = 0; i < listItemsValue.length; i++) {
+                    svs.put(listItemsDisplayName[i], String.valueOf(listItemsValue[i]));
                 }
             }
 
-            if (!StringUtils.isEmpty(val)) {
+            if (!StringUtils.isEmpty(val) && !svs.keySet().contains(val)) {
                 svs.put(val, val);
             }
 
@@ -93,7 +96,14 @@ public class TaCoKitPropertiesTableEditorView<B> extends PropertiesTableEditorVi
             }
 
             if (namesSet.length > 0 && index > -1 && index < namesSet.length) {
-                returnedValue = namesSet[index];
+                if (EParameterFieldType.TACOKIT_VALUE_SELECTION.equals(currentParam.getFieldType())) {
+                    ElementParameterValueModel model = new ElementParameterValueModel();
+                    model.setValue(svs.get(namesSet[index]));
+                    model.setLebel(namesSet[index]);
+                    returnedValue = model;
+                } else {
+                    returnedValue = namesSet[index];
+                }
             } else {
                 returnedValue = null;
             }
