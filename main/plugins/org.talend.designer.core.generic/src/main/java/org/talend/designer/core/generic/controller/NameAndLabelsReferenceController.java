@@ -13,6 +13,7 @@
 package org.talend.designer.core.generic.controller;
 
 import java.beans.PropertyChangeEvent;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.gef.commands.Command;
@@ -34,12 +35,13 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.views.properties.tabbed.ITabbedPropertyConstants;
 import org.talend.commons.ui.runtime.image.ImageProvider;
+import org.talend.core.model.process.IElement;
 import org.talend.core.model.process.IElementParameter;
 import org.talend.core.ui.CoreUIPlugin;
 import org.talend.core.ui.properties.tab.IDynamicProperty;
-import org.talend.core.utils.TalendQuoteUtils;
 import org.talend.designer.core.generic.model.GenericElementParameter;
 import org.talend.designer.core.generic.utils.ComponentsUtils;
+import org.talend.designer.core.generic.utils.ParameterUtilTool;
 import org.talend.designer.core.i18n.Messages;
 import org.talend.designer.core.ui.editor.cmd.PropertyChangeCommand;
 import org.talend.designer.core.ui.editor.nodes.Node;
@@ -70,6 +72,8 @@ public class NameAndLabelsReferenceController extends AbstractElementPropertySec
         if (paramObj instanceof GenericElementParameter) {
             GenericElementParameter gParam = (GenericElementParameter) paramObj;
             if (gParam != null) {
+                promptParameterMap.clear();
+                updatePromptParameter(gParam);
                 callBeforeActive(gParam);
                 NameAndLabelsDialog nameAndLabelsDialog = new NameAndLabelsDialog(composite.getShell(),
                         ComponentsUtils.getFormalPossibleValues(gParam), this.isInWizard());
@@ -124,6 +128,7 @@ public class NameAndLabelsReferenceController extends AbstractElementPropertySec
             public void widgetSelected(SelectionEvent e) {
                 Command cmd = createCommand((Button) e.getSource());
                 executeCommand(cmd);
+                resetPromptParameter();
             }
         });
 
@@ -216,4 +221,8 @@ public class NameAndLabelsReferenceController extends AbstractElementPropertySec
         fixedCursorPosition(param, labelText, value, valueChanged);
     }
 
+    @Override
+    protected List<? extends IElementParameter> getPromptParameters(IElement element) {
+        return ParameterUtilTool.getContextParameters(element);
+    }
 }

@@ -72,11 +72,10 @@ import org.talend.daikon.properties.Properties;
 import org.talend.daikon.properties.PropertiesImpl;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.designer.core.generic.constants.IGenericConstants;
-import org.talend.designer.core.generic.model.GenericElementParameter;
 import org.talend.designer.core.generic.model.GenericTableUtils;
 import org.talend.designer.core.generic.utils.ComponentsUtils;
+import org.talend.designer.core.generic.utils.ParameterUtilTool;
 import org.talend.designer.core.model.FakeElement;
-import org.talend.designer.core.model.components.ElementParameter;
 import org.talend.designer.core.utils.UnifiedComponentUtil;
 import org.talend.metadata.managment.utils.MetadataConnectionUtils;
 import org.talend.repository.generic.persistence.GenericRepository;
@@ -173,7 +172,7 @@ public class GenericDBService implements IGenericDBService{
         contextParentComp.setLayout(new GridLayout());
 
         GenericContextHandler contextHandler = new GenericContextHandler();
-        contextHandler.setParameters(getContextParameters(baseElement));
+        contextHandler.setParameters(ParameterUtilTool.getContextParameters(baseElement));
         ContextComposite contextComp = new ContextComposite(contextParentComp, (ConnectionItem)property.getItem(), isReadOnly,
                 contextHandler);
 
@@ -202,26 +201,6 @@ public class GenericDBService implements IGenericDBService{
                 driverProp.setStoredValue(newList);
             }
         }
-    }
-
-    private List<IElementParameter> getContextParameters(Element element) {
-        List<IElementParameter> contextParameters = new ArrayList<>();
-        for (IElementParameter parameter : element.getElementParameters()) {
-            if (parameter instanceof GenericElementParameter) {
-                GenericElementParameter genericElementParameter = (GenericElementParameter) parameter;
-                if (genericElementParameter.isSupportContext()) {
-                    contextParameters.add(parameter);
-                }
-                List<ElementParameter> relatedParameters = ComponentsUtils.getRelatedParameters(genericElementParameter);
-                for (ElementParameter relatedParameter : relatedParameters) {
-                    if (relatedParameter instanceof GenericElementParameter
-                            && ((GenericElementParameter) relatedParameter).isSupportContext()) {
-                        contextParameters.add(relatedParameter);
-                    }
-                }
-            }
-        }
-        return contextParameters;
     }
 
     private FormData createMainFormData(boolean addContextSupport) {
@@ -320,7 +299,7 @@ public class GenericDBService implements IGenericDBService{
 
         if (GlobalServiceRegister.getDefault().isServiceRegistered(ITDQRepositoryService.class)) {
             tdqRepService =
-                    (ITDQRepositoryService) GlobalServiceRegister.getDefault().getService(ITDQRepositoryService.class);
+                    GlobalServiceRegister.getDefault().getService(ITDQRepositoryService.class);
         }
         if (tdqRepService != null) {
             // MOD qiongli 2012-11-19 TDQ-6287

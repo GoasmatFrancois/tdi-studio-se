@@ -12,9 +12,14 @@
 // ============================================================================
 package org.talend.designer.core.generic.utils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.talend.core.model.process.EParameterFieldType;
+import org.talend.core.model.process.IElement;
+import org.talend.core.model.process.IElementParameter;
+import org.talend.designer.core.generic.model.GenericElementParameter;
+import org.talend.designer.core.model.components.ElementParameter;
 import org.talend.designer.core.model.utils.emf.talendfile.ElementParameterType;
 import org.talend.designer.core.model.utils.emf.talendfile.NodeType;
 import org.talend.designer.core.model.utils.emf.talendfile.TalendFileFactory;
@@ -115,5 +120,25 @@ public final class ParameterUtilTool {
             }
         }
         return paramValue;
+    }
+
+    public static List<IElementParameter> getContextParameters(IElement element) {
+        List<IElementParameter> contextParameters = new ArrayList<>();
+        for (IElementParameter parameter : element.getElementParameters()) {
+            if (parameter instanceof GenericElementParameter) {
+                GenericElementParameter genericElementParameter = (GenericElementParameter) parameter;
+                if (genericElementParameter.isSupportContext()) {
+                    contextParameters.add(parameter);
+                }
+                List<ElementParameter> relatedParameters = ComponentsUtils.getRelatedParameters(genericElementParameter);
+                for (ElementParameter relatedParameter : relatedParameters) {
+                    if (relatedParameter instanceof GenericElementParameter
+                            && ((GenericElementParameter) relatedParameter).isSupportContext()) {
+                        contextParameters.add(relatedParameter);
+                    }
+                }
+            }
+        }
+        return contextParameters;
     }
 }
