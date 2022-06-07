@@ -89,6 +89,7 @@ import org.talend.core.model.metadata.builder.ConvertionHelper;
 import org.talend.core.model.metadata.builder.connection.Connection;
 import org.talend.core.model.metadata.builder.connection.DatabaseConnection;
 import org.talend.core.model.metadata.builder.database.ExtractMetaDataUtils;
+import org.talend.core.model.metadata.builder.database.JavaSqlFactory;
 import org.talend.core.model.metadata.designerproperties.EParameterNameForComponent;
 import org.talend.core.model.param.EConnectionParameterName;
 import org.talend.core.model.process.EComponentCategory;
@@ -97,6 +98,7 @@ import org.talend.core.model.process.Element;
 import org.talend.core.model.process.IConnection;
 import org.talend.core.model.process.IContext;
 import org.talend.core.model.process.IContextManager;
+import org.talend.core.model.process.IContextParameter;
 import org.talend.core.model.process.IElement;
 import org.talend.core.model.process.IElementParameter;
 import org.talend.core.model.process.INode;
@@ -149,11 +151,13 @@ import org.talend.designer.core.ui.views.problems.Problems;
 import org.talend.designer.core.ui.views.properties.ComponentSettingsView;
 import org.talend.designer.core.ui.views.properties.MultipleThreadDynamicComposite;
 import org.talend.designer.core.ui.views.properties.WidgetFactory;
+import org.talend.designer.core.ui.views.properties.composites.MissingSettingsMultiThreadDynamicComposite;
 import org.talend.designer.core.utils.UpgradeParameterHelper;
 import org.talend.designer.runprocess.IRunProcessService;
 import org.talend.hadoop.distribution.constants.HiveConstant;
 import org.talend.hadoop.distribution.constants.ImpalaConstant;
 import org.talend.metadata.managment.repository.ManagerConnection;
+import org.talend.metadata.managment.utils.MetadataConnectionUtils;
 import org.talend.repository.RepositoryPlugin;
 import org.talend.repository.model.IMetadataService;
 import org.talend.repository.model.IProxyRepositoryFactory;
@@ -221,6 +225,8 @@ public abstract class AbstractElementPropertySectionController implements Proper
     protected IContextManager contextManager;
 
     public static Map<String, String> connKeyMap = new HashMap<String, String>(10);
+
+    protected Map<String, String> promptParameterMap = new HashMap<String, String>();
 
     static {
         connKeyMap.put("SERVER_NAME", "HOST"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -2780,4 +2786,89 @@ public abstract class AbstractElementPropertySectionController implements Proper
         return !(elem instanceof FakeElement) && param.isRepositoryValueUsed();
     }
 
+    protected void updatePromptParameter(IElementParameter parameter) {
+        IElement element = parameter.getElement();
+        if (isInWizard()) {
+            ConnectionItem connItem = null;
+            if (dynamicProperty instanceof MissingSettingsMultiThreadDynamicComposite) {
+                connItem = ((MissingSettingsMultiThreadDynamicComposite) dynamicProperty).getConnectionItem();
+            }
+            if (connItem == null) {
+                return;
+            }
+            Connection conn = connItem.getConnection();
+            if (!conn.isContextMode()) {
+                return;
+            }
+            JavaSqlFactory.clearPromptContextCache();
+            Connection connection = MetadataConnectionUtils.prepareConection(conn);
+            if (connection == null) {
+                return;
+            }
+            List<? extends IElementParameter> params = getPromptParameters(element);
+            for (IElementParameter param : params) {
+                Object paramValue = param.getValue();
+                if (!(param.getFieldType().equals(EParameterFieldType.TEXT))) {
+                    continue;
+                }
+                if (paramValue != null && !"".equals(paramValue)) { //$NON-NLS-1$
+                    String value = JavaSqlFactory.getReportPromptConValueFromCache(connection.getContextName(),
+                            connection.getContextId(), paramValue.toString());
+                    if (StringUtils.isNotBlank(value)) {
+                        promptParameterMap.put(param.getName(), paramValue.toString());
+                        elem.setPropertyValue(param.getName(), value);
+                    }
+                }
+            }
+        } else {
+            IContext selectContext = null;
+            if (part != null && part.getProcess() != null) {
+                selectContext = part.getProcess().getContextManager().getDefaultContext();
+            }
+            if (GlobalServiceRegister.getDefault().isServiceRegistered(IRunProcessService.class) && part != null) {
+                IRunProcessService service = GlobalServiceRegister.getDefault().getService(IRunProcessService.class);
+                Shell shell = PlatformUI.getWorkbench().getDisplay().getActiveShell();
+                selectContext = service.promptConfirmLauch(shell, part.getProcess());
+                if (selectContext == null) {
+                    return;
+                }
+                Map<String, String> promptNeededMap = new HashMap<String, String>();
+                for (IContextParameter contextParameter : selectContext.getContextParameterList()) {
+                    if (contextParameter.isPromptNeeded()) {
+                        String name = contextParameter.getName();
+                        String value = contextParameter.getValue();
+                        if (StringUtils.isNotBlank(value)) {
+                            promptNeededMap.put("context." + name, value);//$NON-NLS-1$
+                        }
+                    }
+                }
+                List<? extends IElementParameter> params = getPromptParameters(element);
+                for (IElementParameter param : params) {
+                    Object paramValue = param.getValue();
+                    if (!(param.getFieldType().equals(EParameterFieldType.TEXT))) {
+                        continue;
+                    }
+                    if (paramValue != null && !"".equals(paramValue)) { //$NON-NLS-1$
+                        if (promptNeededMap.containsKey(paramValue)) {
+                            promptParameterMap.put(param.getName(), paramValue.toString());
+                            elem.setPropertyValue(param.getName(), promptNeededMap.get(paramValue));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    protected void resetPromptParameter() {
+        Iterator<String> iter = promptParameterMap.keySet().iterator();
+        while (iter.hasNext()) {
+            String key = iter.next();
+            String value = promptParameterMap.get(key);
+            elem.setPropertyValue(key, value);
+        }
+    }
+
+    protected List<? extends IElementParameter> getPromptParameters(IElement element) {
+        return element.getElementParameters();
+    }
 }

@@ -41,6 +41,7 @@ import org.talend.core.GlobalServiceRegister;
 import org.talend.core.ILibraryManagerService;
 import org.talend.core.model.metadata.builder.connection.Connection;
 import org.talend.core.model.metadata.builder.database.ExtractMetaDataUtils;
+import org.talend.core.model.process.IElement;
 import org.talend.core.model.process.IElementParameter;
 import org.talend.core.model.properties.ConnectionItem;
 import org.talend.core.runtime.util.GenericTypeUtils;
@@ -53,6 +54,7 @@ import org.talend.designer.core.generic.constants.IGenericConstants;
 import org.talend.designer.core.generic.i18n.Messages;
 import org.talend.designer.core.generic.model.GenericElementParameter;
 import org.talend.designer.core.generic.model.GenericTableUtils;
+import org.talend.designer.core.generic.utils.ParameterUtilTool;
 import org.talend.designer.core.ui.editor.cmd.PropertyChangeCommand;
 import org.talend.designer.core.ui.editor.properties.controllers.AbstractElementPropertySectionController;
 import org.talend.designer.core.ui.views.properties.composites.MissingSettingsMultiThreadDynamicComposite;
@@ -101,6 +103,8 @@ public class ButtonController extends AbstractElementPropertySectionController {
         }
 
         if (parameter != null) {
+            promptParameterMap.clear();
+            updatePromptParameter(parameter);
             callBeforeActive(parameter);
             // so as to invoke listeners to perform some actions.
             return new PropertyChangeCommand(elem, parameter.getName(), null);
@@ -135,7 +139,7 @@ public class ButtonController extends AbstractElementPropertySectionController {
     }
 
     private Boolean loadJars(IElementParameter parameter) {
-        ILibraryManagerService librairesManagerService = (ILibraryManagerService) GlobalServiceRegister.getDefault().getService(
+        ILibraryManagerService librairesManagerService = GlobalServiceRegister.getDefault().getService(
                 ILibraryManagerService.class);
         if(librairesManagerService == null){
             return null;
@@ -213,6 +217,7 @@ public class ButtonController extends AbstractElementPropertySectionController {
             public void widgetSelected(SelectionEvent e) {
                 Command cmd = createCommand((Button) e.getSource());
                 executeCommand(cmd);
+                resetPromptParameter();
                 ConnectionContextHelper.context = null;
             }
         });
@@ -234,6 +239,11 @@ public class ButtonController extends AbstractElementPropertySectionController {
     @Override
     public int estimateRowSize(Composite subComposite, IElementParameter param) {
         return 0;
+    }
+
+    @Override
+    protected List<? extends IElementParameter> getPromptParameters(IElement element) {
+        return ParameterUtilTool.getContextParameters(element);
     }
 
 }
