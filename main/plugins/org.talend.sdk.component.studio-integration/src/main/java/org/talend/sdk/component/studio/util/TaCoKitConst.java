@@ -69,6 +69,10 @@ public class TaCoKitConst {
 
     public static final String COMPONENT_NAME_SEPARATOR = "";
 
+    public static final String PARAM_CAR_INSTALLER_USE_BUILTIN = "talend.studio.tck.carInstaller.useBuiltin";//$NON-NLS-1$
+
+    public static final String PARAM_CAR_INSTALLER_M2_REPO_PATH = "talend.studio.m2.repo";//$NON-NLS-1$
+
     public static final String PROP_COMPONENT = "component.java.coordinates"; //$NON-NLS-1$
 
     public static final String PROP_COMPONENT_SEPARATOR = ","; //$NON-NLS-1$

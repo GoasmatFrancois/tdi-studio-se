@@ -39,6 +39,8 @@ public class TaCoKitCar implements Comparable<Object> {
 
     public static final String PROPERTY_CAR_VERSION = "version"; //$NON-NLS-1$
 
+    public static final String PROPERTY_CAR_BUNDLER_VERSION = "CarBundlerVersion"; //$NON-NLS-1$
+
     public static final String PROPERTY_DATE = "date"; //$NON-NLS-1$
 
     private File carFile;
@@ -48,6 +50,8 @@ public class TaCoKitCar implements Comparable<Object> {
     private String dateString;
 
     private String carVersion;
+
+    private String carBundlerVersion;
 
     private String id;
 
@@ -72,6 +76,7 @@ public class TaCoKitCar implements Comparable<Object> {
         }
         components = TaCoKitUtil.convert2GAV(componentCoordinates);
         setCarVersion(props.getProperty(PROPERTY_CAR_VERSION));
+        setCarBundlerVersion(props.getProperty(PROPERTY_CAR_BUNDLER_VERSION));
         setDateString(props.getProperty(PROPERTY_DATE));
         if (0 < components.size()) {
             GAV gav = components.get(0);
@@ -155,11 +160,11 @@ public class TaCoKitCar implements Comparable<Object> {
         return dateString.compareTo(oDateString);
     }
 
-    @SuppressWarnings("nls")
     @Override
     public String toString() {
-        return "TaCoKitCar [components=" + this.components + ", name=" + this.name + ", carVersion=" + this.carVersion
-                + ", dateString=" + this.dateString + ", description=" + this.description + ", carFile=" + this.carFile + "]";
+        return "TaCoKitCar [carFile=" + carFile + ", components=" + components + ", dateString=" + dateString + ", carVersion="
+                + carVersion + ", carBundlerVersion=" + carBundlerVersion + ", id=" + id + ", name=" + name + ", description="
+                + description + "]";
     }
 
     public File getCarFile() {
@@ -216,6 +221,14 @@ public class TaCoKitCar implements Comparable<Object> {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getCarBundlerVersion() {
+        return carBundlerVersion;
+    }
+
+    public void setCarBundlerVersion(String carBundlerVersion) {
+        this.carBundlerVersion = carBundlerVersion;
     }
 
 }

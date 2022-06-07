@@ -276,67 +276,87 @@ public class TaCoKitCarFeature extends AbstractExtraFeature implements ITaCoKitC
 
     @SuppressWarnings("nls")
     public boolean install(IProgressMonitor progress) throws Exception {
-        String tckCarPath = getCar(progress).getCarFile().getAbsolutePath();
-        String installationPath = URIUtil.toFile(URIUtil.toURI(Platform.getInstallLocation().getURL())).getAbsolutePath();
-        String commandType = "studio-deploy";
-        List<String> cmds = new ArrayList<String>();
-        String javaCMD = getJavaCMD();
-        cmds.add(javaCMD);
-        cmds.add("-jar");
-        cmds.add(tckCarPath);
-        
-        if (isDeployCommand) {
-            File m2Folder =this.getM2RepositoryPath();
-            installationPath = m2Folder.getAbsolutePath();
-            commandType = "maven-deploy";
-        }
-        cmds.add(commandType);
-        cmds.add(installationPath);
-
-        ExceptionHandler.logDebug("tck install command line: " + cmds);
-        
-        Process exec = null;
-        try {
-            exec = Runtime.getRuntime().exec(cmds.toArray(new String[0]));
-        } catch (Exception e) {
-            ExceptionHandler.process(e);
-            throw e;
-        }
-        while (exec.isAlive()) {
+        TaCoKitCar tckCar = getCar(progress);
+        String carBundlerVersion = tckCar.getCarBundlerVersion();
+        boolean useBuiltinInstaller = false;
+        if (!isDeployCommand) {
             try {
-                TaCoKitUtil.checkMonitor(progress);
-            } catch (InterruptedException e) {
-                exec.destroy();
-                boolean alreadyInstalled = false;
+                useBuiltinInstaller = Boolean.getBoolean(TaCoKitConst.PARAM_CAR_INSTALLER_USE_BUILTIN) || (StringUtils
+                        .isBlank(carBundlerVersion)
+                        // we fixed the issue in tck 1.45.1, so newer version can continue to use CarMain
+                        || PathUtils.convert2Version(carBundlerVersion).compareTo(PathUtils.convert2Version("1.45.1")) < 0);
+            } catch (Exception e) {
+                ExceptionHandler.process(e);
+            }
+        }
+        String installationPath = URIUtil.toFile(URIUtil.toURI(Platform.getInstallLocation().getURL())).getAbsolutePath();
+        File m2RepoFolder = this.getM2RepositoryPath();
+        if (useBuiltinInstaller) {
+            CarMain.deployInStudio(tckCar.getCarFile(), installationPath, false, m2RepoFolder);
+            return true;
+        } else {
+            String m2RepoPath = URIUtil.toFile(m2RepoFolder.toURI()).getAbsolutePath();
+            String tckCarPath = URIUtil.toFile(tckCar.getCarFile().toURI()).getAbsolutePath();
+            String commandType = "studio-deploy";
+            List<String> cmds = new ArrayList<String>();
+            String javaCMD = getJavaCMD();
+            cmds.add(javaCMD);
+            cmds.add("-D" + TaCoKitConst.PARAM_CAR_INSTALLER_M2_REPO_PATH + "=" + m2RepoPath);
+            cmds.add("-jar");
+            cmds.add(tckCarPath);
+
+            if (isDeployCommand) {
+                installationPath = m2RepoPath;
+                commandType = "maven-deploy";
+            }
+            cmds.add(commandType);
+            cmds.add(installationPath);
+
+            ExceptionHandler.logDebug("tck install command line: " + cmds);
+
+            Process exec = null;
+            try {
+                exec = Runtime.getRuntime().exec(cmds.toArray(new String[0]));
+            } catch (Exception e) {
+                ExceptionHandler.process(e);
+                throw e;
+            }
+            while (exec.isAlive()) {
                 try {
-                    InstallationStatus installationStatus = getInstallationStatus(new NullProgressMonitor());
-                    if (installationStatus != null) {
-                        org.talend.updates.runtime.model.InstallationStatus.Status status = installationStatus.getStatus();
-                        if (status != null) {
-                            if (status.isInstalled()) {
-                                String installedVersion = installationStatus.getInstalledVersion();
-                                alreadyInstalled = StringUtils.equals(getVersion(), installedVersion);
+                    TaCoKitUtil.checkMonitor(progress);
+                } catch (InterruptedException e) {
+                    exec.destroy();
+                    boolean alreadyInstalled = false;
+                    try {
+                        InstallationStatus installationStatus = getInstallationStatus(new NullProgressMonitor());
+                        if (installationStatus != null) {
+                            org.talend.updates.runtime.model.InstallationStatus.Status status = installationStatus.getStatus();
+                            if (status != null) {
+                                if (status.isInstalled()) {
+                                    String installedVersion = installationStatus.getInstalledVersion();
+                                    alreadyInstalled = StringUtils.equals(getVersion(), installedVersion);
+                                }
                             }
                         }
+                    } catch (Exception e1) {
+                        ExceptionHandler.process(e1);
                     }
-                } catch (Exception e1) {
-                    ExceptionHandler.process(e1);
+                    if (alreadyInstalled) {
+                        return true;
+                    } else {
+                        throw e;
+                    }
                 }
-                if (alreadyInstalled) {
-                    return true;
-                } else {
-                    throw e;
-                }
+                Thread.sleep(100);
             }
-            Thread.sleep(100);
+            int exitValue = exec.exitValue();
+            if (exitValue != 0) {
+                Exception e = new Exception(getErrorMessage(exec));
+                ExceptionHandler.process(e);
+                throw e;
+            }
+            return true;
         }
-        int exitValue = exec.exitValue();
-        if (exitValue != 0) {
-            Exception e = new Exception(getErrorMessage(exec));
-            ExceptionHandler.process(e);
-            throw e;
-        }
-        return true;
     }
     
     private File getM2RepositoryPath() {

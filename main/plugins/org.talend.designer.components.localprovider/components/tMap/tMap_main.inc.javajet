@@ -424,36 +424,57 @@
 			if(<%= mainInputTableName %> == null) {
 				<%= mainInputTableName %> = new <%= realMainConnection.getName() %>Struct();
 			}
-    	    <%
+			<%
 		} // T_TM_M_291
 		
+		if(!hasPersistentLookup)  {
+			for (int iInputTable = 1; iInputTable < sizeInputTables; iInputTable++) {
+				final ExternalMapperTable externalTable = inputTables.get(iInputTable);
+
+				final String tableName = externalTable.getName();
+				final IConnection connection = hNameToConnection.get(tableName);
+				if (connection == null) {
+					continue;
+				}
+
+				final EConnectionType connectionType = connection.getLineStyle();
+
+				if (connectionType == EConnectionType.FLOW_REF) {//lookup line
+					final List<ExternalMapperTableEntry> metadataTableEntries = externalTable.getMetadataTableEntries();
+					if (metadataTableEntries == null) {
+						continue;
+					}
+
+					if (!isVirtualIn) {
+					%>
+						<%=tableName %>Struct <%=tableName %> = null;
+					<%
+					}
+				}
+			}
+		}
 		
+		if (!dieonerror) {
+			tryOffset = stringBuffer.length();
+
+		} // close dieonerror if check
 		%>
+		// ###############################
+		// # Input tables (lookups)
+		<%
 
-            <%
-            if (!dieonerror) {
-			    tryOffset = stringBuffer.length();
+		ArrayList<ExternalMapperTable> inputTablesWithInnerJoin = new ArrayList<ExternalMapperTable>();
+		boolean hasValidLookupTables = false;
 
-            } // close dieonerror if check
+		int closeBracketCounter = 0;
 		%>
-        // ###############################
-        // # Input tables (lookups)
-        <%
-
-        ArrayList<ExternalMapperTable> inputTablesWithInnerJoin = new ArrayList<ExternalMapperTable>();
-        boolean hasValidLookupTables = false;
-
-		  int closeBracketCounter = 0;
-		%>
-		  boolean <%= rejectedInnerJoin %> = false;
-		  boolean <%= mainRowRejected %> = false;
-            				    								  
+		boolean <%= rejectedInnerJoin %> = false;
+		boolean <%= mainRowRejected %> = false;
 		<%
 
 		String previousLookupName = null;
 		String previousTableName = mainInputTableName;
 
-		
 		int previousJoinedTablesPersistentSortedDelimited = 0;
 		int nextJoinedTableIndex = currentJoinedTableIndex;
 
@@ -467,7 +488,7 @@
 		List<String> declarationsStructForNextSortedWhile = new ArrayList<String>();
 		List<String> closeAllRowsBlockCount = new ArrayList<String>();
 
-        for (int iInputTable = 0; iInputTable < sizeInputTables; iInputTable++) { // T_TM_M_261
+		for (int iInputTable = 0; iInputTable < sizeInputTables; iInputTable++) { // T_TM_M_261
 			ExternalMapperTable externalTable = inputTables.get(iInputTable);
 			
 			boolean isMultipleResultMode = false;
@@ -696,7 +717,7 @@
 
                     hasValidLookupTables = true;
                     
-                     String matchingMode = externalTable.getMatchingMode();
+                    String matchingMode = externalTable.getMatchingMode();
 					if(matchingMode == null) {
 						if(aKeysValues.length > 0) {
 							matchingMode = "UNIQUE_MATCH";
@@ -999,7 +1020,9 @@
 							} // T 52 
 							%>
 
-							<%= tableName %>Struct <%= tableName %> = null;
+							<%if(hasPersistentLookup) {%>
+							<%=tableName %>Struct <%=tableName %> = null;
+							<%}%>
                     		  	 
 							<%
 							if(isMultipleResultMode) { // T 60
@@ -1369,6 +1392,7 @@
         boolean atLeastOneInputTableWithInnerJoin = !inputTablesWithInnerJoin.isEmpty();
 
             if (!dieonerror) {
+				//here mean disable TDI-45732 for some special case, is a workaround fix
 			    if(gm.getBlocksCodeToClose()!=null && gm.getBlocksCodeToClose().size()>0){
             %>
                 try {

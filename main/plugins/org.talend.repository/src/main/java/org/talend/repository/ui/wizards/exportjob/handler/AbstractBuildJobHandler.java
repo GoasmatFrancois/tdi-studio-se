@@ -17,11 +17,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.talend.commons.CommonsPlugin;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.exception.PersistenceException;
@@ -32,6 +34,8 @@ import org.talend.core.PluginChecker;
 import org.talend.core.model.properties.Item;
 import org.talend.core.model.properties.ProcessItem;
 import org.talend.core.model.properties.Project;
+import org.talend.core.prefs.SecurityPreferenceConstants;
+import org.talend.core.runtime.CoreRuntimePlugin;
 import org.talend.core.runtime.process.IBuildJobHandler;
 import org.talend.core.runtime.process.ITalendProcessJavaProject;
 import org.talend.core.runtime.process.LastGenerationInfo;
@@ -48,6 +52,7 @@ import org.talend.designer.runprocess.ProcessorUtilities;
 import org.talend.repository.ProjectManager;
 import org.talend.repository.ui.utils.Log4jPrefsSettingManager;
 import org.talend.repository.ui.wizards.exportjob.scriptsmanager.JobScriptsManager.ExportChoice;
+import org.talend.utils.security.StudioEncryption;
 
 /**
  * created by ycbai on 2015年5月13日 Detailled comment
@@ -275,6 +280,28 @@ public abstract class AbstractBuildJobHandler implements IBuildJobHandler, IBuil
             otherArgsBuffer.append(TalendMavenConstants.ARG_TEST_FAILURE_IGNORE);
         }
         if (canSignJob()) {
+            // Setup custom JKS for signature
+            IPreferenceStore preStore = CoreRuntimePlugin.getInstance().getCoreService().getPreferenceStore();
+            String signerPath = preStore.getString(SecurityPreferenceConstants.SIGNER_PATH);
+            if (StringUtils.isNotBlank(signerPath)) {
+                otherArgsBuffer.append(" -Dsigner.path=\"" + signerPath + "\"");//$NON-NLS-1$//$NON-NLS-2$
+            }
+            String signerStorePassword = preStore.getString(SecurityPreferenceConstants.SIGNER_KEYSTORE_PASSWORD);
+            if (StringUtils.isNotBlank(signerStorePassword)) {
+                signerStorePassword = StudioEncryption.getStudioEncryption(StudioEncryption.EncryptionKeyName.SYSTEM)
+                        .decrypt(signerStorePassword);
+                otherArgsBuffer.append(" -Dsigner.keystore.password=" + signerStorePassword);//$NON-NLS-1$
+            }
+            String signerKeyPassword = preStore.getString(SecurityPreferenceConstants.SIGNER_KEY_PASSWORD);
+            if (StringUtils.isNotBlank(signerKeyPassword)) {
+                signerKeyPassword = StudioEncryption.getStudioEncryption(StudioEncryption.EncryptionKeyName.SYSTEM)
+                        .decrypt(signerKeyPassword);
+                otherArgsBuffer.append(" -Dsigner.key.password=" + signerKeyPassword);//$NON-NLS-1$
+            }
+            String signerKeyAlias = preStore.getString(SecurityPreferenceConstants.SIGNER_KEY_ALIAS);
+            if (StringUtils.isNotBlank(signerKeyAlias)) {
+                otherArgsBuffer.append(" -Dsigner.key.alias=" + signerKeyAlias);//$NON-NLS-1$
+            }
             otherArgsBuffer.append(" " + TalendMavenConstants.ARG_LICENSE_PATH + "=\"" + getLicenseFile().getAbsolutePath() + "\"");
             otherArgsBuffer.append(" " + TalendMavenConstants.ARG_SESSION_ID + "=" + getSessionId());
         }
@@ -310,7 +337,7 @@ public abstract class AbstractBuildJobHandler implements IBuildJobHandler, IBuil
 
     protected File getLicenseFile() {
         if (GlobalServiceRegister.getDefault().isServiceRegistered(ICoreTisService.class)) {
-            ICoreTisService coreTisService = (ICoreTisService) GlobalServiceRegister.getDefault()
+            ICoreTisService coreTisService = GlobalServiceRegister.getDefault()
                     .getService(ICoreTisService.class);
             File licenseFile = coreTisService.getLicenseFile();
             if (licenseFile.exists() && !coreTisService.isLicenseExpired()) {
@@ -322,7 +349,7 @@ public abstract class AbstractBuildJobHandler implements IBuildJobHandler, IBuil
 
     private String getSessionId() {
         if (GlobalServiceRegister.getDefault().isServiceRegistered(ICoreTisService.class)) {
-            ICoreTisService coreTisService = (ICoreTisService) GlobalServiceRegister.getDefault()
+            ICoreTisService coreTisService = GlobalServiceRegister.getDefault()
                     .getService(ICoreTisService.class);
             return coreTisService.generateSignerSessionId();
         }

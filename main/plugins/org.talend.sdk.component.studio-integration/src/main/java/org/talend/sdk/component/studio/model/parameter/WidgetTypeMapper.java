@@ -67,6 +67,8 @@ public class WidgetTypeMapper {
             return getSuggestableTableType();
         } else if (isTable(property)) {
             return getTableType();
+        } else if (isModuleList(property)) {
+            return getModuleListType();
         } else if (isValueSelection(property)) {
             return getValueSelectionType();
         } else if (isDate(property)) {
@@ -220,6 +222,13 @@ public class WidgetTypeMapper {
         return CLOSED_LIST;
     }
 
+    private boolean isModuleList(final SimplePropertyDefinition property) {
+        return property.getMetadata().containsKey("ui::modulelist");
+    }
+
+    protected EParameterFieldType getModuleListType() {
+        return MODULE_LIST;
+    }
     /**
      * Checks whether widget type is {@link EParameterFieldType#TABLE}
      *

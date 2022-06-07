@@ -300,9 +300,14 @@ public class PropertiesTableEditorView<B> extends AbstractPropertiesTableEditorV
                     column.setModifiable((param.getElement() instanceof FakeElement || !param.isRepositoryValueUsed()) && (!param.isReadOnly())
                             && (!currentParam.isReadOnly()));
                     ModuleListCellEditor moduleEditor = new ModuleListCellEditor(table, currentParam, param);
+                    ModuleTableLabelProvider labelProvider = new ModuleTableLabelProvider();
+                    if (isTacokit(currentParam)) {
+                        labelProvider.setDriversKey(currentParam.getName());
+                    }
+
                     moduleEditor.setTableEditorView(this);
                     column.setCellEditor(moduleEditor);
-                    column.setLabelProvider(new ModuleTableLabelProvider());
+                    column.setLabelProvider(labelProvider);
                     break;
                 case COLOR:
                     column.setModifiable((!param.isRepositoryValueUsed()) && (!param.isReadOnly())
@@ -920,6 +925,15 @@ public class PropertiesTableEditorView<B> extends AbstractPropertiesTableEditorV
         }
     }
 
+    private boolean isTacokit(IElementParameter param) {
+        boolean isTacokit = false;
+        if (param instanceof ElementParameter) {
+            Object sourceName = ((ElementParameter) param).getTaggedValue("org.talend.sdk.component.source"); //$NON-NLS-1$
+            isTacokit = "tacokit".equalsIgnoreCase(String.valueOf(sourceName)); //$NON-NLS-1$
+        }
+        return isTacokit;
+    }
+
     private boolean isEBCDICNode(INode node) {
         if (PluginChecker.isEBCDICPluginLoaded()) {
             IEBCDICProviderService service = GlobalServiceRegister.getDefault().getService(
@@ -1038,10 +1052,20 @@ public class PropertiesTableEditorView<B> extends AbstractPropertiesTableEditorV
 
         private final String[] KEYS = new String[] { "drivers", "JAR_NAME" };
 
+        private String driversKey;
+
+        public void setDriversKey(String driversKey) {
+            this.driversKey = driversKey;
+        }
+
         @Override
         public String getLabel(Object bean) {
             if (bean instanceof Map) {
                 Map<String, String> valueMap = (Map<String, String>) bean;
+                if (StringUtils.isNotBlank(driversKey) && valueMap.containsKey(driversKey)) {
+                    return getModuleName(valueMap.get(driversKey));
+                }
+
                 for (String key : KEYS) {
                     if (valueMap.containsKey(key)) {
                         String value = valueMap.get(key);
