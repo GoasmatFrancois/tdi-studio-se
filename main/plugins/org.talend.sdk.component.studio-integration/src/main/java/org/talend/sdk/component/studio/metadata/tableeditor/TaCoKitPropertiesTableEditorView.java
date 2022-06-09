@@ -99,7 +99,7 @@ public class TaCoKitPropertiesTableEditorView<B> extends PropertiesTableEditorVi
                 if (EParameterFieldType.TACOKIT_VALUE_SELECTION.equals(currentParam.getFieldType())) {
                     ElementParameterValueModel model = new ElementParameterValueModel();
                     model.setValue(svs.get(namesSet[index]));
-                    model.setLebel(namesSet[index]);
+                    model.setLabel(namesSet[index]);
                     returnedValue = model;
                 } else {
                     returnedValue = namesSet[index];

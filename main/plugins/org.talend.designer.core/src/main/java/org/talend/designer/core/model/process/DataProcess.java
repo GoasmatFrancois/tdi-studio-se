@@ -32,7 +32,6 @@ import org.eclipse.emf.common.util.EMap;
 import org.eclipse.ui.IEditorPart;
 import org.talend.commons.exception.ExceptionHandler;
 import org.talend.commons.exception.PersistenceException;
-import org.talend.commons.runtime.service.ITaCoKitService;
 import org.talend.components.api.properties.ComponentProperties;
 import org.talend.components.api.properties.ComponentReferenceProperties;
 import org.talend.components.api.properties.VirtualComponentProperties;
@@ -64,6 +63,7 @@ import org.talend.core.model.process.EComponentCategory;
 import org.talend.core.model.process.EConnectionType;
 import org.talend.core.model.process.EParameterFieldType;
 import org.talend.core.model.process.ElementParameterParser;
+import org.talend.core.model.process.ElementParameterValueModel;
 import org.talend.core.model.process.IConnection;
 import org.talend.core.model.process.IConnectionCategory;
 import org.talend.core.model.process.IElement;
@@ -232,10 +232,7 @@ public class DataProcess implements IGeneratingProcess {
                     targetParam.setListItemsValue(ArrayUtils.clone(sourceParam.getListItemsValue()));
                     targetParam.setListItemsDisplayCodeName(sourceParam.getListItemsDisplayCodeName());
                     try {
-                        IElementParameter familyParam = sourceElement.getElementParameter(EParameterName.FAMILY.getName());
-                        if (familyParam != null && "GoogleAnalytics".equals(familyParam.getValue())) {
-                            setupTacokitSuggestionValueConfiguration(targetParam);
-                        }
+                        setupTacokitSuggestionValueConfiguration(targetParam);
                     } catch (Exception e) {
                         ExceptionHandler.process(e);
                     }
@@ -264,8 +261,7 @@ public class DataProcess implements IGeneratingProcess {
         if (parameter instanceof ElementParameter) {
             Object sourceName = ((ElementParameter) parameter).getTaggedValue("org.talend.sdk.component.source"); //$NON-NLS-1$
             boolean isTacokit = "tacokit".equalsIgnoreCase(String.valueOf(sourceName)); //$NON-NLS-1$
-            ITaCoKitService taCoKitService = ITaCoKitService.getInstance();
-            if (!isTacokit || taCoKitService == null) {
+            if (!isTacokit) {
                 return;
             }
             Object value = parameter.getValue();
@@ -275,9 +271,11 @@ public class DataProcess implements IGeneratingProcess {
             Object[] listItemsValue = parameter.getListItemsValue();
             Set<String> valueSelectionColNames = new HashSet<String>();
             for (Object itemObj : listItemsValue) {
-                if (taCoKitService.isValueSelectionParameter(itemObj) && itemObj instanceof ElementParameter) {
+                if (itemObj instanceof ElementParameter) {
                     ElementParameter itemParam = (ElementParameter) itemObj;
-                    valueSelectionColNames.add(itemParam.getName());
+                    if (EParameterFieldType.TACOKIT_VALUE_SELECTION.equals(itemParam.getFieldType())) {
+                        valueSelectionColNames.add(itemParam.getName());
+                    }
                 }
             }
 
@@ -286,17 +284,11 @@ public class DataProcess implements IGeneratingProcess {
                     if (row instanceof Map) {
                         Map rowColumn = (Map) row;
                         for (Object columnName : rowColumn.keySet()) {
-                            if (!valueSelectionColNames.contains(String.valueOf(columnName))) {
-                                continue;
-                            }
-
-                            String columnValue = String.valueOf(rowColumn.get(columnName));
-                            if (columnValue.contains("(") && columnValue.contains(")")) {
-                                String sugValueId = columnValue.substring(columnValue.lastIndexOf("(") + 1,
-                                        columnValue.lastIndexOf(")"));
-                                if (StringUtils.isNotBlank(sugValueId)) {
-                                    rowColumn.put(columnName, sugValueId);
-                                }
+                            Object columnValue = rowColumn.get(columnName);
+                            if (valueSelectionColNames.contains(String.valueOf(columnName))
+                                    && columnValue instanceof ElementParameterValueModel) {
+                                ElementParameterValueModel model = (ElementParameterValueModel) columnValue;
+                                rowColumn.put(columnName, model.getValue());
                             }
                         }
                     }

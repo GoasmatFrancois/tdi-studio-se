@@ -57,6 +57,7 @@ import org.talend.core.model.metadata.IRuleConstant;
 import org.talend.core.model.metadata.ISAPConstant;
 import org.talend.core.model.metadata.MetadataToolHelper;
 import org.talend.core.model.process.EParameterFieldType;
+import org.talend.core.model.process.ElementParameterValueModel;
 import org.talend.core.model.process.IConnection;
 import org.talend.core.model.process.IElement;
 import org.talend.core.model.process.IElementParameter;
@@ -229,6 +230,9 @@ public class PropertiesTableEditorView<B> extends AbstractPropertiesTableEditorV
 
                         @Override
                         public String getColumnText(CellEditor cellEditor, Object bean, Object cellEditorValue) {
+                            if (cellEditorValue instanceof ElementParameterValueModel) {
+                                return cellEditorValue.toString();
+                            }
                             return (String) cellEditorValue;
                         }
 
@@ -683,6 +687,9 @@ public class PropertiesTableEditorView<B> extends AbstractPropertiesTableEditorV
                             case PREV_COLUMN_LIST:
                             case TACOKIT_VALUE_SELECTION:
                                 fillDefaultItemsList(tmpParam, value);
+                                if (value instanceof ElementParameterValueModel) {
+                                    return value;
+                                }
                             case DBTYPE_LIST:
                                 if (hideValue) {
                                     return "";//$NON-NLS-1$

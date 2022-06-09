@@ -1240,7 +1240,7 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
                             strValue = ((Boolean) o).toString();
                         } else if (o instanceof ElementParameterValueModel) {
                             ElementParameterValueModel model = (ElementParameterValueModel) o;
-                            elementValue.setLabel(model.getLebel());
+                            elementValue.setLabel(model.getLabel());
                             strValue = model.getValue();
                         }
                     }
@@ -1507,6 +1507,7 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
                 }
             } else if (isTable(param)) {
                 List<Map<String, Object>> tableValues = new ArrayList<Map<String, Object>>();
+                Map<String, EParameterFieldType> paramFieldTypes = getTableListEleParamFieldTypes(param);
                 String[] codeList = param.getListItemsDisplayCodeName();
                 Map<String, Object> lineValues = null;
                 for (ElementValueType elementValue : (List<ElementValueType>) pType.getElementValue()) {
@@ -1551,14 +1552,15 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
                         if (needRemoveQuotes) {
                             elemValue = TalendTextUtils.removeQuotes(elemValue);
                         }
-                        String valuelabel = elementValue.getLabel();
+
                         ElementParameterValueModel model = null;
-                        if (StringUtils.isNotBlank(valuelabel)) {
+                        EParameterFieldType elementValueFieldType = paramFieldTypes.get(elementValue.getElementRef());
+                        if (EParameterFieldType.TACOKIT_VALUE_SELECTION.equals(elementValueFieldType)) {
                             model = new ElementParameterValueModel();
+                            model.setLabel(elementValue.getLabel());
                             model.setValue(elemValue);
-                            model.setLebel(valuelabel);
                         }
-                        lineValues.put(elementValue.getElementRef(), model != null ? elemValue : model);
+                        lineValues.put(elementValue.getElementRef(), model != null ? model : elemValue);
                         if (elementValue.getType() != null) {
                             lineValues.put(elementValue.getElementRef() + IEbcdicConstant.REF_TYPE, elementValue.getType());
                         }
@@ -1645,6 +1647,18 @@ public class Process extends Element implements IProcess2, IGEFProcess, ILastVer
             elemParam.setPropertyValue(Process.TABLE_ACTION, "CLEAR"); //$NON-NLS-1$
             UpdateTheJobsActionsOnTable.isClear = false;
         }
+    }
+
+    private Map<String, EParameterFieldType> getTableListEleParamFieldTypes(IElementParameter param) {
+        Map<String, EParameterFieldType> paramTypeMap = new HashMap<String, EParameterFieldType>();
+        Object[] listItemsValue = param.getListItemsValue();
+        for (Object listItem : listItemsValue) {
+            if (listItem instanceof IElementParameter) {
+                IElementParameter listItemParam = (IElementParameter) listItem;
+                paramTypeMap.put(listItemParam.getName(), listItemParam.getFieldType());
+            }
+        }
+        return paramTypeMap;
     }
 
     protected ProcessType createProcessType(TalendFileFactory fileFact) {
